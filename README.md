@@ -1,5 +1,5 @@
-# No-Touch-Display-Interface-at-Edge-IoT
-##Enabling HCI on the Edge: Gesture &amp; Offline Sound Control of kiosks with AI models, hardware optimized with Intel OpenVINO, code optimized with VTune
+# No-Touch Display Interface at Edge (IoT)
+##_Enabling HCI on Edge: Multi-threaded Gesture & Sound Control of kiosks with Intel OpenVINO AI models; Eye Wink & Mouth Aspect with numerical models
 
 The objective of the project is to detect faces in the video from file or cam. Further, the eyes are detected and head pose orientation is computed using a pre-trained openvino model. The results of the models are cascadingly fed to a gaze estimation model which predicts the angle of gaze of the person. The angle of gaze is taken as input and used to control the mouse pointer of the screen.
 
