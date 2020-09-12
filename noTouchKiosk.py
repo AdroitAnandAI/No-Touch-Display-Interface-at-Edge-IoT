@@ -14,10 +14,13 @@ import logging
 import time
 import collections 
 import numpy as np
+
+import matplotlib.pyplot as plt
 from input_feeder import InputFeeder
 from argparse import ArgumentParser
 
 # For Signal Processing.
+from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 import peakutils.peak
 
@@ -28,7 +31,6 @@ from landmarks import LandmarksDetect
 from gazedetect import GazeDetect
 from mouse_controller import MouseController
 
-import matplotlib.pyplot as plt
 
 # For Inter-Thread Communication.
 from queue import Queue 
@@ -106,9 +108,54 @@ def isFaceInBounds(headYawPitchBounds, yaw, pitch):
         return False
 
 
+def sigmoid(x, L ,x0, k, b):
+    # print(k)
+    # print(np.exp(-k*(x-x0)))
+    y = L / (1 + np.exp(k*(x-x0)))+b
+    return (y)
 
 
-def checkEvent(image, pixelCount, numFrames = 50):
+def isCurveSigmoid(pixelCounts, count):
+
+    try:
+        xIndex = len(pixelCounts)
+        # y = list(range(xIndex))
+        # print(y)
+
+        p0 = [max(pixelCounts), np.median(xIndex),1,min(pixelCounts)] # this is an mandatory initial guess
+
+        popt, pcov = curve_fit(sigmoid, list(range(xIndex)), pixelCounts, p0, method='dogbox', maxfev=5000)
+
+        # popt, pcov = curve_fit(sigmoid, list(range(xIndex)), pixelCounts)
+
+        # plt.plot(list(range(xIndex)), sigmoid(list(range(xIndex)), *popt), 'r-', label='fit')
+        # plt.show()
+
+        yVals = sigmoid(list(range(xIndex)), *popt)
+
+        # medianY = np.median(yVals)
+
+        print("Pixel Count Size = " + str(xIndex))
+        # print("Median Diff = " + str(np.median(yVals[:10]) - np.median(yVals[-10:])))
+        # May have to check for a value much less than Median to avoid false positives.
+        if np.median(yVals[:10]) - np.median(yVals[-10:]) > 15:
+            print('Triggered Event')
+            print(yVals)
+            xVals = [n+count-40 for n in list(range(xIndex))]
+            plt.plot(xVals, sigmoid(list(range(xIndex)), *popt), 'b--', label='Curve Fit')
+            # plt.legend()
+            plt.pause(1.5)
+            return True
+
+    except Exception as err:
+        print(traceback.format_exc())
+        # PrintException()
+
+    return False
+
+
+
+def checkEvent(image, pixelCount, frame_count, numFrames = 50):
 
     triggerEvent = False
 
@@ -126,30 +173,14 @@ def checkEvent(image, pixelCount, numFrames = 50):
     activePixels = np.count_nonzero(histg)
     pixelCount.append(activePixels)
 
-    if len(pixelCount) > numFrames:
-        # print(numFrames)
-        diff = np.diff(pixelCount[-numFrames+10:])
+    if len(pixelCount) > numFrames and frame_count % 15 == 0:
 
-        # plt.plot(diff)
-        # plt.pause(0.01)        
-        
-        peaks = peakutils.peak.indexes(np.array(diff), thres=0.8, min_dist=2)
-        x =   np.array([i * -1 for i in diff])
-        peaksReflected = peakutils.peak.indexes(np.array(x), thres=0.8, min_dist=2)
-
-        # if peak is there on upright and reflected signal then the closed eyes are open soon
-        # i.e. it denotes a blink and not a gesture. But if peak is found only on the reflected
-        # signal then eyes are closed for long time to indicate gesture.
-        if (peaksReflected.size > 0 and x[peaksReflected[0]] > 0 and peaks.size == 0):
-
+        if isCurveSigmoid(pixelCount[-numFrames+10:], len(pixelCount)):
             print('Event Triggered...')
-
-            # plt.plot(x)
-            # # plt.plot(peaks, x[peaks], "x")
-            # plt.plot(peaksReflected, x[peaksReflected], marker="x")
-            # plt.pause(1.05)
             pixelCount.clear()
+            plt.clf()
             triggerEvent = True
+
 
     return pixelCount, triggerEvent
 
@@ -241,6 +272,13 @@ def PrintException():
     line = linecache.getline(filename, lineno, f.f_globals)
     print ('EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj))
 
+
+# Function used for debugging list values to fit curves
+def writeList(list2Write):
+
+    with open('pixelsCounts.txt', 'w') as filehandle:
+        for listitem in list2Write:
+            filehandle.write('%s\n' % listitem)
 
 
 def argparser():
@@ -454,6 +492,7 @@ def main(args):
                 logger.error("Unable to detect the face.")
                 continue
 
+            # print(len(crop_face))
             # Draw the face box
             xmin, ymin, xmax, ymax = box
             if visualizeFace:
@@ -485,21 +524,34 @@ def main(args):
                                     xmin + p2[0] - pad: xmin + p3[0] + pad]
 
 
-            pixelCount_reye, Ltrigger = checkEvent(right_eye_ball, pixelCount_reye) 
-            pixelCount_leye, Rtrigger = checkEvent(left_eye_ball, pixelCount_leye) 
+            pixelCount_leye_bk = pixelCount_leye #can delete this line
+            pixelCount_reye, Rtrigger = checkEvent(right_eye_ball, pixelCount_reye, frame_count) 
+            pixelCount_leye, Ltrigger = checkEvent(left_eye_ball, pixelCount_leye, frame_count) 
 
-            # plt.plot(pixelCount_reye)
-            # plt.pause(0.05)
+            # if Ltrigger and len(pixelCount_reye) > 0:
+            #     print("ERROR L...")
+            # if Rtrigger and len(pixelCount_leye) > 0:
+            #     print("ERROR R...")
+
+            plt.plot(pixelCount_reye, 'r-', label='Right Eye')
+            plt.plot(pixelCount_leye, 'g-', label='Left Eye')
+
+            if (frame_count == 1 or Ltrigger or Rtrigger):
+                print('Legend Display')
+                plt.legend()
+            plt.pause(0.05)
 
             # if Ltrigger and Rtrigger:
             #     print('BOTH EYES ARE CLOSED...')
                 
             if Ltrigger:
                 print('left eye pressed')
+                writeList(pixelCount_leye_bk)
                 mc.scroll(20) # you can pass the head pose up/down as param
                 # mc.drag()
             elif Rtrigger:
                 print('right eye pressed')
+                
                 mc.clickRight()
             
             # print('eye ball shape = ')
