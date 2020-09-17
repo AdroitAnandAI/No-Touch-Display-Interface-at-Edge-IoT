@@ -1,6 +1,6 @@
 # Project Touch-Me-Not!
 # Touch-less Display Interfaces on Edge
-# Enabling HCI on Edge: Multi-threaded Gesture & Sound Control of kiosks with Intel OpenVINO AI models. Eye Wink & Mouth Aspect with numerical models
+# _Enabling HCI on Edge: Multi-threaded Gesture & Sound Control of kiosks with Intel OpenVINO AI models. Eye Wink & Mouth Aspect with numerical models_
 
 
 ## Project Overview
@@ -17,17 +17,17 @@ In this project, we will try to build a Human-Computer Interaction (HCI) module 
 
 ## Benefits & Features
 
-a) To control public kiosks without touching the device
-b) To control edge devices with gestures and also sound
-c) To efficiently deploy complex AI solutions at the edge
-d) Highlight of this project is the usage of efficient Numerical Algorithms along with hardware optimized OpenVINO models to tackle interesting usecases.
-e) Use visual interaction where touch is not possible or advisable
-f) Multiple facial features are identified and mapped to specific action triggers
-g) Sound control is done on the edge, without needing the device to be online.
-h) The project demonstrates the capability of Intel OpenVINO to handle multiple Edge AI models in sequence and in parallel.
-i) Many control inputs are also sourced to demonstrate the flexibility. But to deploy a custom solution you can choose controls, as you deem fit.
-j) For instance, Gaze control may be ideal for big screen while head pose control for laptop screen. Either way, Sound Control can help to accept custom form entries or vocal commands. 
-k) Gesture-action mapping can also be modified. Even the control mode can be switched with gestures. 
+a) To control public kiosks without touching the device <br>
+b) To control edge devices with gestures and also sound <br>
+c) To efficiently deploy complex AI solutions at the edge <br>
+d) Highlight of this project is the usage of efficient Numerical Algorithms along with hardware optimized OpenVINO models to tackle interesting usecases. <br>
+e) Use visual interaction where touch is not possible or advisable <br>
+f) Multiple facial features are identified and mapped to specific action triggers <br>
+g) Sound control is done on the edge, without needing the device to be online. <br>
+h) The project demonstrates the capability of Intel OpenVINO to handle multiple Edge AI models in sequence and in parallel. <br>
+i) Many control inputs are also sourced to demonstrate the flexibility. But to deploy a custom solution you can choose controls, as you deem fit. <br>
+j) For instance, Gaze control may be ideal for big screen while head pose control for laptop screen. Either way, Sound Control can help to accept custom form entries or vocal commands.  <br>
+k) Gesture-action mapping can also be modified. Even the control mode can be switched with gestures.  <br> <br>
 
 
 ## What is the social impact? (e.g. monetary saving, health and safety improvements, reduced carbon footprint etc.)
@@ -83,17 +83,20 @@ iii) On a different note, if you visualize the output of head pose model then it
 ## Project Set Up and Installation
 
 ### Install OpenVino
+```
 wget http://registrationcenter-download.intel.com/akdlm/irc_nas/16612/l_openvino_toolkit_p_2020.2.120.tgz
 tar -xvf l_openvino_toolkit_p_2020.2.120.tgz
 cd l_openvino_toolkit_p_2020.2.120
 sed -i 's/decline/accept/g' silent.cfg
 sudo ./install.sh -s silent.cfg
-
+```
 ### Create a Virtual env
+```
 python3 -m venv edge
 source edge/bin/activate
-
+```
 ### Project dependencies
+```
 pip3 install -r requirements.txt
 
 To download the required models:
@@ -103,7 +106,7 @@ python /opt/intel/openvino/deployment_tools/tools/model_downloader/downloader.py
 python /opt/intel/openvino/deployment_tools/tools/model_downloader/downloader.py --name "head-pose-estimation-adas-0001"
 python /opt/intel/openvino/deployment_tools/tools/model_downloader/downloader.py --name "gaze-estimation-adas-0002"
 python /opt/intel/openvino/deployment_tools/tools/model_downloader/downloader.py --name "face-detection-adas-0001"
-
+```
 
 
 ## For software projects, you can include working code with helpful comments
@@ -124,15 +127,16 @@ Mouse moves with changing head orientation (slower)
 - Control Mode 3: Sound Control
 Mouse slides in 4 directions and type based on user utterance
 
-##Calibration Step
+## Calibration Step
 To translate the 3D gaze orientation angles to 2D screen dimension, the system has to know the yaw and pitch angles corresponding to opposite corners of the screen. Given these 2 angles of opposite corners, we can interpolate the (x, y) location in the screen for intermediate (yaw, pitch) angles.
 
 Therefore, the user will be prompted to look at opposite corners of the screen, when the application is initiated. Such a calibration step is needed to map the variation in gaze angles to the size and shape of the screen, in order for the "gaze mode" to function properly.
 
 Without calibration also the system can function, albeit at the expense of generality. To demonstrate, the relative change in head orientation is taken as the metric to move mouse pointer, when the system is in "head pose" mode.
 
-## How did you use the OpenVINO Toolkit? Please tell us more about improvements or optimizations achieved on your model or application. Highlight increase in performance, latency or accuracy that you were able to achieve for your use case through retraining, quantization or other fine-tuning techniques.
+## Usage of OpenVINO Toolkit: Improvements or Optimizations
 
+Various benchmarks are done with different model variants to select the optimal model combo for pipeline. The code has also been optimized with the use of Intel VTune.
 
 ### Benchmark Modes
 
@@ -153,8 +157,7 @@ Used the below parameters for corresponding benchmarks:
 
 
 ### Benchmark Results
-
-
+```
 a) Benchmark by taking video input. All models are FP16
 FPS = 15.29160590328414
 Inference Time of 4 models = 0.08967375755310059
@@ -175,16 +178,16 @@ e) Webcam as input. Using INT8 for Face Detection & FP32 for Gaze & Landmark det
 
 Inference Time of 4 models = 0.03919792175292969
 FPS = 15.08791291804411
-
+```
 
 It is seemingly clear that increase in number of bits slows down the inference and lower the FPS. But as with all AI tasks, its always a tradeoff between required accuracy and minimum speed.
 For face detection, INT8 model is giving good accuracy but landmark detection and gaze require maximum accuracy for accurate mouse control. Headpose require reasonable accuracy, hence FP16 is used. 
 FP16 models commonly regarded as the mid-path between accuracy and speed, as compared to FP32 and INT8. But from the above analysis, it seems like Benchmark (e) gives good balance between accuracy and speed for this project. 
 
-Finally, Intel VTune profiler is used to find hotspots and optimize the application code. A shell script vtune_script.sh is fed into the VTune GUI which initiates the project with suitable arguments. The lines in the code which takes more time are identified and possible ones are optimized. For instance, the curve_fit algo seemed to take much time and iterations with 'dogbox' optimize function, which was then replaced with 'lm' method.
+Finally, Intel VTune profiler is used to find hotspots and optimize the application code. A shell script vtune_script.sh is fed into the VTune GUI which initiates the project with suitable arguments. The lines in the code which takes more time are identified and possible ones are optimized. For instance, the curve_fit algo seemed to take much time and iterations with 'dogbox' optimize function, which was then replaced with 'lm' method. This has improved efficiency significantly.
 
 
-## Models used - Intel pre-trained models, public models or own trained models.
+## Models Used
 
 ### Gesture Detection Pipeline Models
 Four Pre-trained OpenVINO models are executed on the input video stream, one feeding onto another, to detect a) Face Location b) Head Pose c) Facial Landmarks and d) Gaze Angles. 
@@ -194,11 +197,11 @@ c) Facial Landmarks: a custom CNN used to estimate 35 facial landmarks. This mod
 d) Gaze Estimation: custom VGG-like CNN for gaze direction estimation.
 The network takes 3 inputs: left eye image, right eye image, and three head pose angles - (yaw, pitch, and roll) - and outputs 3-D gaze vector in Cartesian coordinate system.
 
-###Speech Recognition Models
+### Speech Recognition Models
 To decode sound waves, we use OpenVINO Feature Extraction & Decoder Library which takes in and transcribe the audio coming from the microphone. We have used the speech library as mentioned in OpenVINO toolkit to run speech recognition on the edge, without going online.
 
 
-###Post-Processing Model Outputs
+### Post-Processing Model Outputs
 To feed one model output to another model as input, the return values of each model need to be decoded and post-processed. 
 For instance, to determine gaze angle, the head orientation need to be numerically combined with the vector output from gaze model.
 
@@ -207,9 +210,9 @@ Similarly, the facial landmarks model returns ratio of input image size. Hence, 
 While output of facial landmark and gaze estimation models can be easily post-processed as above, the output of head pose estimation model has to converted from Euler angles to rotation matrices. 
 
 
-###Numerical Models
+### Numerical Models
 
-###Eye Wink Detection 
+### Eye Wink Detection 
 To use a kiosk, you also need to trigger events, such as 'Left Click', 'Right Click', 'Scroll', 'Drag' etc.  In order to do so, a set of pre-defined gestures need to be mapped to each event, and be recognized from the visual input. Two events can be mapped to 'wink' event of left and right eye, but they need to be identified as 'wink'.
 
 You can easily notice that the number of white pixels will suddenly increase when the eyes are open, and decrease when closed. We can just count the white pixels to differentiate open vs closed eye.
@@ -242,7 +245,7 @@ e) If peak is found only in reflection, then its a wink event.
 
 The above method is more efficient than curve fitting, but can lead to many false positives, as peak detection is not always reliable, especially at low light. Middle of the road approach would be to use median and standard deviation to estimate the shape of the curve.
 
-###Mouth Aspect Ratio (MAR)
+### Mouth Aspect Ratio (MAR)
 Eye Aspect Ratio (EAR) is computed in this classic facial landmark paper to determine eye blinks.
 
 Inspired by EAR, we can compute MAR based on the available 4 landmarks obtained from OpenVINO model.
@@ -270,7 +273,7 @@ The function is so written that commands and also synonyms can easily be extende
 The gaze of an eye or pose of a head will continuously change at least a bit, even if unintended. Such natural motions should not be considered as a command, otherwise the mouse pointer will become jittery. Hence, we introduced a 'stickiness' parameter within which the motion is ignored. This has greatly increased the stability and usability of gesture control.
 
 
-#Complete BOM
+# Complete BOM
 
 This is a software project though the models used and the code written can be deployed on the edge, given the device support Intel Architecture as specified in OpenVINO Documentation. 
 
@@ -308,20 +311,20 @@ iv) Mobile as Light Source
 f) Laptop with Intel CPU and Webcam.
 
 
-#Creative Elements (20 points)
+# Creative Elements (20 points)
 
-##Innovative use of Numerical Algorithms
+## Innovative use of Numerical Algorithms
 What makes the project unique is the innovative use of numerical algorithms to replace AI models, in line with the advocacy in my blog here:
 https://towardsdatascience.com/the-power-of-mathematical-ingenuity-49c7b6cfe05e
 
 This idea is especially important when OpenVINO optimized models are deployed on the edge. The models are already optimized to the extend possible and the computation overhead is with the remaining code. Here, we need to use efficient statistical analysis or numerical algorithms to save the compute. Why to use a sledgehammer to crack a nut?
 
-###Eye Wink Detection
-####Inverse Simoid Curve Fitting - Imaginately solved the problem using Non-Linear Least Squares
-####Peak Detection in first differential signals - self written algorithm
+### Eye Wink Detection
+#### Inverse Simoid Curve Fitting - Imaginately solved the problem using Non-Linear Least Squares
+#### Peak Detection in first differential signals - self written algorithm
 
-###Statistical Analysis of non-zero Histogram Spread - innovative way to efficiently detect and differentiate blink/wink.
-###Mouth Aspect Ratio to detect smile and yawn (idea derived EAR concept as found in Research Paper [3])
+### Statistical Analysis of non-zero Histogram Spread - innovative way to efficiently detect and differentiate blink/wink.
+### Mouth Aspect Ratio to detect smile and yawn (idea derived EAR concept as found in Research Paper [3])
 
 ## Pipeline of OpenVINO models to solve the dire need of distancing and safety during COVID. The same solution can be used in health care as well for physically challenged or bed ridden or elderly.
 
@@ -347,9 +350,9 @@ We can place a 3D body in any orientation, by rotating along 3 axes, one after t
 
 Rotation matrix for Euler-Cartesian conversion is coded in python to find the Pose Vector: (as seen in visualization)
 
-| cos(yaw)cos(pitch) -cos(yaw)sin(pitch)sin(roll)-sin(yaw)cos(roll) -cos(yaw)sin(pitch)cos(roll)+sin(yaw)sin(roll)|
-| sin(yaw)cos(pitch) -sin(yaw)sin(pitch)sin(roll)+cos(yaw)cos(roll) -sin(yaw)sin(pitch)cos(roll)-cos(yaw)sin(roll)|
-| sin(pitch)          cos(pitch)sin(roll)                            cos(pitch)sin(roll)                          |
+| cos(yaw)cos(pitch) -cos(yaw)sin(pitch)sin(roll)-sin(yaw)cos(roll) -cos(yaw)sin(pitch)cos(roll)+sin(yaw)sin(roll)| <br>
+| sin(yaw)cos(pitch) -sin(yaw)sin(pitch)sin(roll)+cos(yaw)cos(roll) -sin(yaw)sin(pitch)cos(roll)-cos(yaw)sin(roll)| <br>
+| sin(pitch)          cos(pitch)sin(roll)                            cos(pitch)sin(roll)                          | <br>
 
 
 To process gaze vector also, we need to do some math.
