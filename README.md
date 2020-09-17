@@ -381,7 +381,7 @@ When the stickiness parameter is set right, then only conscious and significant 
 The choice of gestures were done in accordance with the metric value we calculate. For instance, as we compute the change in spread of eye histogram, it was natural to choose "looking up" gesture because this will trigger maximum hike in spread. Similarly, yawn was found to be most accurate to measure and hence "mouse left click" event was associated to yawn gesture.
 
 
-## This is an individual submission. Hence, all the above ideas are entirely mine and not output of a discussion or team work.
+- This is an individual submission. Hence, all the above ideas are entirely mine and not output of a discussion or team work.
 
 
 # Conclusion
@@ -393,6 +393,6 @@ For instance, Gaze control may be ideal for big screen while head pose control f
 
 
 ## References
-[1] Intel OpenVINO Official Docs: https://docs.openvinotoolkit.org
-[2] Intel® Edge AI for IoT Nanodegree by Udacity. Idea inspired from Final Course Project. https://classroom.udacity.com/nanodegrees/nd131
+[1] Intel OpenVINO Official Docs: https://docs.openvinotoolkit.org <br>
+[2] Intel® Edge AI for IoT Nanodegree by Udacity. Idea inspired from Final Course Project. https://classroom.udacity.com/nanodegrees/nd131 <br>
 [3] Real-Time Eye Blink Detection using Facial Landmarks by Tereza Soukupova and Jan Cech, Faculty of E.E., Czech Technical University in Prague.
