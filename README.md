@@ -1,11 +1,10 @@
-# Project Touch-Me-Not!
-# Touch-less Display Interfaces on Edge
+# Project Touch-Me-Not: Touch-less Display Interfaces on Edge
 # _Enabling HCI on Edge: Multi-threaded Gesture & Sound Control of kiosks with Intel OpenVINO AI models. Eye Wink & Mouth Aspect with numerical models_
 
 
 ## Project Overview
 
-## Describe the problem solved by your project
+## Problem Definition
 
 Interactive public kiosks are now so widely used viz. Banking (ATMs), Airport (Check-in), Government (e-Governance), Retail (Product Catalogue), Healthcare (Appointment), Schools (Attendance), Corporate (Registration), Events (Information) and the list goes on. While businesses move towards kiosks to better service delivery, touch-free interaction of all public devices has become an imperative to mitigate the spread of ubiquitous Corona virus.
 
@@ -20,17 +19,17 @@ In this project, we will try to build a Human-Computer Interaction (HCI) module 
 a) To control public kiosks without touching the device <br>
 b) To control edge devices with gestures and also sound <br>
 c) To efficiently deploy complex AI solutions at the edge <br>
-d) Highlight of this project is the usage of efficient Numerical Algorithms along with hardware optimized OpenVINO models to tackle interesting usecases. <br>
+d) Usage of efficient Numerical Algorithms along with hardware optimized OpenVINO models<br>
 e) Use visual interaction where touch is not possible or advisable <br>
 f) Multiple facial features are identified and mapped to specific action triggers <br>
 g) Sound control is done on the edge, without needing the device to be online. <br>
-h) The project demonstrates the capability of Intel OpenVINO to handle multiple Edge AI models in sequence and in parallel. <br>
-i) Many control inputs are also sourced to demonstrate the flexibility. But to deploy a custom solution you can choose controls, as you deem fit. <br>
-j) For instance, Gaze control may be ideal for big screen while head pose control for laptop screen. Either way, Sound Control can help to accept custom form entries or vocal commands.  <br>
+h) Demonstrates the capability of Intel OpenVINO to handle multiple Edge AI models in sequence and in parallel. <br>
+i) Many control inputs are also sourced to demonstrate the flexibility. <br>
+j) Stickiness feature can be tuned to set the minimum movement of head of gaze to be ignored.  <br>
 k) Gesture-action mapping can also be modified. Even the control mode can be switched with gestures.  <br> <br>
 
 
-## What is the social impact? (e.g. monetary saving, health and safety improvements, reduced carbon footprint etc.)
+## Social impact
 
 This project has got high social impact index. Our most pressing concern, at present, is to control the spread of COVID. To facilitate this, we need to allow touch free interaction of all public devices. To sanitize hand, right before and after using serums is not a practical solution, in long run. People may fail to adhere. Rather a practical solution is to avoid touch to the extend possible. This project addresses this problem using multiple AI models and using OpenVINO to deploy them on the edge devices. This will significantly improve the health and safety standards among the public.
 
@@ -49,16 +48,17 @@ arch diagram
 
 
 ## How To run:
+```
 python3 noTouchKiosk.py {command line arguments}
 
 Example: python3 noTouchKiosk.py -f ../models/face-detection-adas-0001/FP16/face-detection-adas-0001.xml -l ../models/facial-landmarks-35-adas-0002/FP16/facial-landmarks-35-adas-0002.xml -hp ../models/head-pose-estimation-adas-0001/FP16/head-pose-estimation-adas-0001.xml -ge ../models/gaze-estimation-adas-0002/FP16/gaze-estimation-adas-0002.xml -i ../bin/demo.mp4 -it cam -d CPU -vh False -vg True -vf True
-
+```
 You can change the model precision and flags given as parameters. vh, -vg and -vf are the visualization debug flags.
 
 The code allows the user to set a flag that can display the outputs of intermediate models. For instance, -vh to visualize head pose results and -vg to visualize gaze model outputs.
 
 ### Command Line Arguments
-
+```
 -f:  Path to .xml file of Face Detection model
 -l:  Path to .xml file of Facial Landmark Detection model
 -hp: Path to .xml file of Head Pose Estimation model
@@ -66,16 +66,16 @@ The code allows the user to set a flag that can display the outputs of intermedi
 -i:  Path to video file or enter cam for webcam
 -it: Provide the source of video frames
 -d:  Provide the target device: "CPU, GPU, FPGA or MYRIAD is acceptable."
-
+```
 IMPORTANT: 
 The output of the project depends on the intial calibration step where the system recognized the extremities of the screen and corresponding gaze angles. Upon execution, the system will direct you to look at the top right corner and then the bottom left corner of your computer screen. Based on the corresponding gaze angles the system is capable to compute the intermediate x, y coordinates using interpolation techniques.
 
-Note: 
-i) If your mouse pointer behaves improper, then calibration step is the most likely problem. Please make sure that your face is properly lit and positioned approximately to middle of the screen so that the gaze angles would make sense of left, right, top and bottom. 
+Note: <br>
+- If your mouse pointer behaves improper, then calibration step is the most likely problem. Please make sure that your face is properly lit and positioned approximately to middle of the screen so that the gaze angles would make sense of left, right, top and bottom. 
 
-ii) The calibration step is optimized for cam input where the user can look at the screen corners. If video is given as input then the mouse will be controlled according to gaze but the direction of mouse pointer can differ. This happens because the person in the video is not looking at the corner of the screen.
+- The calibration step is optimized for cam input where the user can look at the screen corners. If video is given as input then the mouse will be controlled according to gaze but the direction of mouse pointer can differ. This happens because the person in the video is not looking at the corner of the screen.
 
-iii) On a different note, if you visualize the output of head pose model then it gives angle of vision but then the orientation of eye balls are not taken into consideration. Instead, when the eyes are cropped and fed into gaze estimation model, the angle of sight is correctly estimated, considering both head pose as well as location of eye ball.
+- On a different note, if you visualize the output of head pose model then it gives angle of vision but then the orientation of eye balls are not taken into consideration. Instead, when the eyes are cropped and fed into gaze estimation model, the angle of sight is correctly estimated, considering both head pose as well as location of eye ball.
 
 
 
@@ -190,15 +190,15 @@ Finally, Intel VTune profiler is used to find hotspots and optimize the applicat
 ## Models Used
 
 ### Gesture Detection Pipeline Models
-Four Pre-trained OpenVINO models are executed on the input video stream, one feeding onto another, to detect a) Face Location b) Head Pose c) Facial Landmarks and d) Gaze Angles. 
-a) Face Detection: A pruned MobileNet backbone with efficient depth-wise convolutions is used. The model outputs (x, y) coordinates of the face in the image, which is fed as input to steps (b) and (c)
-b) Head Pose Estimation: The model outputs Yaw, Pitch and Roll angles of head, taking face image as input from step (a)
-c) Facial Landmarks: a custom CNN used to estimate 35 facial landmarks. This model takes cropped face image from step (a) as input and computes facial landmarks, as above. Such a detailed map is required to identify facial gestures, though it is double as heavy in compute demand (0.042 vs 0.021 GFlops), compared to the Landmark Regression model, which gives just 5 facial landmarks.
-d) Gaze Estimation: custom VGG-like CNN for gaze direction estimation.
+Four Pre-trained OpenVINO models are executed on the input video stream, one feeding onto another, to detect a) Face Location b) Head Pose c) Facial Landmarks and d) Gaze Angles. <br>
+a) Face Detection: A pruned MobileNet backbone with efficient depth-wise convolutions is used. The model outputs (x, y) coordinates of the face in the image, which is fed as input to steps (b) and (c)<br>
+b) Head Pose Estimation: The model outputs Yaw, Pitch and Roll angles of head, taking face image as input from step (a)<br>
+c) Facial Landmarks: a custom CNN used to estimate 35 facial landmarks. This model takes cropped face image from step (a) as input and computes facial landmarks, as above. Such a detailed map is required to identify facial gestures, though it is double as heavy in compute demand (0.042 vs 0.021 GFlops), compared to the Landmark Regression model, which gives just 5 facial landmarks.<br>
+d) Gaze Estimation: custom VGG-like CNN for gaze direction estimation.<br><br>
 The network takes 3 inputs: left eye image, right eye image, and three head pose angles - (yaw, pitch, and roll) - and outputs 3-D gaze vector in Cartesian coordinate system.
 
 ### Speech Recognition Models
-To decode sound waves, we use OpenVINO Feature Extraction & Decoder Library which takes in and transcribe the audio coming from the microphone. We have used the speech library as mentioned in OpenVINO toolkit to run speech recognition on the edge, without going online.
+To decode sound waves, we use OpenVINO Feature Extraction & Decoder Library which takes in and transcribe the audio coming from the microphone. We have used the speech library as mentioned in OpenVINO toolkit to run speech recognition on the edge, without going online.<br>
 
 
 ### Post-Processing Model Outputs
@@ -213,21 +213,21 @@ While output of facial landmark and gaze estimation models can be easily post-pr
 ### Numerical Models
 
 ### Eye Wink Detection 
-To use a kiosk, you also need to trigger events, such as 'Left Click', 'Right Click', 'Scroll', 'Drag' etc.  In order to do so, a set of pre-defined gestures need to be mapped to each event, and be recognized from the visual input. Two events can be mapped to 'wink' event of left and right eye, but they need to be identified as 'wink'.
+To use a kiosk, you also need to trigger events, such as 'Left Click', 'Right Click', 'Scroll', 'Drag' etc.  In order to do so, a set of pre-defined gestures need to be mapped to each event, and be recognized from the visual input. Two events can be mapped to 'wink' event of left and right eye, but they need to be identified as 'wink'.<br>
 
-You can easily notice that the number of white pixels will suddenly increase when the eyes are open, and decrease when closed. We can just count the white pixels to differentiate open vs closed eye.
+You can easily notice that the number of white pixels will suddenly increase when the eyes are open, and decrease when closed. We can just count the white pixels to differentiate open vs closed eye.<br>
 
-But in real world, above logic is not reliable because white pixel value itself can range. We can always use Deep Learning or ML  techniques to classify but its advisable to use a numerical solution, in the interest of efficiency, especially when you code for edge devices. 
+But in real world, above logic is not reliable because white pixel value itself can range. We can always use Deep Learning or ML  techniques to classify but its advisable to use a numerical solution, in the interest of efficiency, especially when you code for edge devices. <br><br>
 Lets see how to numerically detect winks using signals in 4 steps!
 1. Calculate frequency of pixels in range 0–255 (histogram)
 2. Compute spread of non-zero pixels in the histogram. When an eye is closed, the spread will take a sudden dip and vice-versa.
 3. Try to fit a inverse sigmoid curve at the tail-end of the above signal.
 4. If successful fit is found, then confirm the 'step down' shape of fitted curve and declare it as 'wink' event. (no curve fit = eye is not winking)
 
-- Algorithm Explanation: 
+Algorithm Explanation: <br>
 If above steps are not clear, then see how the histogram spread graph falls, when an open eye is closed.
 
-you can imagine that the curve  would take shape of 'S' when the eye is opened for a few seconds. This can be mathematically parameterized using a sigmoid function. But since we need to detect 'wink' event shown above, the shape of the curve will take the form of an inverse sigmoid function. To flip the sigmoid function about the x-axis, find f(-x). 
+You can imagine that the curve  would take shape of 'S' when the eye is opened for a few seconds. This can be mathematically parameterized using a sigmoid function. But since we need to detect 'wink' event shown above, the shape of the curve will take the form of an inverse sigmoid function. To flip the sigmoid function about the x-axis, find f(-x). 
 
 Thus, if any similar shape is found by parametric curve fit algorithm, at the tail end of the histogram spread curve, then we can call it a 'wink'. The curve fit algo tries to solve a nonlinear least-squares problem.
 
@@ -236,12 +236,12 @@ i) Consider strip of 'n' recent values in Histogram Spread.
 ii) Compute the median & std of 'k' values in the front and tail end of strip.
 iii) If difference in median > threshold and both std < threshold, then detect eye wink event, as it's most likely an inverse sigmoid shape.
 
-Alternatively, we can also use the below algo to find eye winks.
-a) Take the first differential of Histogram Spread values
-b) Find the peak in the first differential values to find sudden spike
-c) Find reflection of the signal and find peak to find sudden dip
-d) If peak is found in both the above steps, then its just a blink
-e) If peak is found only in reflection, then its a wink event.
+Alternatively, we can also use the below algo to find eye winks.<br><br>
+a) Take the first differential of Histogram Spread values<br>
+b) Find the peak in the first differential values to find sudden spike<br>
+c) Find reflection of the signal and find peak to find sudden dip<br>
+d) If peak is found in both the above steps, then its just a blink<br>
+e) If peak is found only in reflection, then its a wink event.<br><br>
 
 The above method is more efficient than curve fitting, but can lead to many false positives, as peak detection is not always reliable, especially at low light. Middle of the road approach would be to use median and standard deviation to estimate the shape of the curve.
 
@@ -275,46 +275,46 @@ The gaze of an eye or pose of a head will continuously change at least a bit, ev
 
 # Complete BOM
 
-This is a software project though the models used and the code written can be deployed on the edge, given the device support Intel Architecture as specified in OpenVINO Documentation. 
+This is a software project though the models used and the code written can be deployed on the edge, given the device support Intel Architecture as specified in OpenVINO Documentation. <br>
 
-Here is the complete list of Software, Models and Tools used:
+Here is the complete list of Software, Models and Tools used:<br>
 
-a) Python 3.6 and its libraries, espcially PyAutoGUI for navigation.
+a) Python 3.6 and its libraries, espcially PyAutoGUI for navigation.<br>
 
-b) Intel OpenVINO 2020
+b) Intel OpenVINO 2020<br>
 
-c) These are the OpenVINO Models Used:
+c) These are the OpenVINO Models Used:<br>
 
-i) Detailed Facial Landmark Detection: "facial-landmarks-35-adas-0002"
-ii) Head Pose Estimation: "head-pose-estimation-adas-0001"
-iii) Gaze Estimation: "gaze-estimation-adas-0002"
-iv) Face Detection: "face-detection-adas-0001"
-v) Speech Recognition:
-OpenVINO Inference Engine plugin 
-OpenVINO Feature Extraction Library
-OpenVINO Decoder Library
+i) Detailed Facial Landmark Detection: "facial-landmarks-35-adas-0002"<br>
+ii) Head Pose Estimation: "head-pose-estimation-adas-0001"<br>
+iii) Gaze Estimation: "gaze-estimation-adas-0002"<br>
+iv) Face Detection: "face-detection-adas-0001"<br>
+v) Speech Recognition:<br>
+OpenVINO Inference Engine plugin <br>
+OpenVINO Feature Extraction Library<br>
+OpenVINO Decoder Library<br>
 
 d) Numerical Models
 
-i)   Inverse Simoid Curve Fitting using Non-Linear Least Squares
-ii)  Mouth Aspect Ratio derived from EAR concept from a Research Paper [3]
-iii) Peak Finding Algorithm
-iv)  Statistical Analysis
+i)   Inverse Simoid Curve Fitting using Non-Linear Least Squares<br>
+ii)  Mouth Aspect Ratio derived from EAR concept from a Research Paper [3]<br>
+iii) Peak Finding Algorithm<br>
+iv)  Statistical Analysis<br>
 
 
-e) Tools Used:
-i) Intel VTune
-ii) Shell Script
-iii) http://fooplot.com as Math Visualization Tool
-iv) Mobile as Light Source
+e) Tools Used:<br>
+i) Intel VTune<br>
+ii) Shell Script<br>
+iii) http://fooplot.com as Math Visualization Tool<br>
+iv) Mobile as Light Source<br><br>
  
-f) Laptop with Intel CPU and Webcam.
+f) Laptop with Intel CPU and Webcam.<br>
 
 
 # Creative Elements (20 points)
 
 ## Innovative use of Numerical Algorithms
-What makes the project unique is the innovative use of numerical algorithms to replace AI models, in line with the advocacy in my blog here:
+What makes the project unique is the innovative use of numerical algorithms to replace AI models, in line with the advocacy in my blog here:<br>
 https://towardsdatascience.com/the-power-of-mathematical-ingenuity-49c7b6cfe05e
 
 This idea is especially important when OpenVINO optimized models are deployed on the edge. The models are already optimized to the extend possible and the computation overhead is with the remaining code. Here, we need to use efficient statistical analysis or numerical algorithms to save the compute. Why to use a sledgehammer to crack a nut?
@@ -384,7 +384,7 @@ When the stickiness parameter is set right, then only conscious and significant 
 The choice of gestures were done in accordance with the metric value we calculate. For instance, as we compute the change in spread of eye histogram, it was natural to choose "looking up" gesture because this will trigger maximum hike in spread. Similarly, yawn was found to be most accurate to measure and hence "mouse left click" event was associated to yawn gesture.
 
 
-- This is an individual submission. Hence, all the above ideas are entirely mine and not output of a discussion or team work.
+Note: This is an individual submission. Hence, all the above ideas are entirely mine and not output of a discussion or team work.
 
 
 # Conclusion
