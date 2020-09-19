@@ -1,5 +1,6 @@
-# Project Touch-Me-Not: Touch-less Display Interfaces on Edge
-# _Enabling HCI on Edge: Multi-threaded Gesture & Sound Control of kiosks with Intel OpenVINO AI models. Eye Wink & Mouth Aspect with numerical models_
+# Project Touch-Me-Not
+# Touch-less Display Interfaces on Edge
+## _Enabling HCI on Edge: Multi-threaded Gesture & Sound Control of kiosks with Intel OpenVINO AI models. Eye Wink & Mouth Aspect with numerical models_
 
 
 ## Project Overview
@@ -180,23 +181,26 @@ Inference Time of 4 models = 0.03919792175292969
 FPS = 15.08791291804411
 ```
 
-It is seemingly clear that increase in number of bits slows down the inference and lower the FPS. But as with all AI tasks, its always a tradeoff between required accuracy and minimum speed.
-For face detection, INT8 model is giving good accuracy but landmark detection and gaze require maximum accuracy for accurate mouse control. Headpose require reasonable accuracy, hence FP16 is used. 
-FP16 models commonly regarded as the mid-path between accuracy and speed, as compared to FP32 and INT8. But from the above analysis, it seems like Benchmark (e) gives good balance between accuracy and speed for this project. 
+It is seemingly clear that increase in number of bits slows down the inference and lower the FPS. But as with all AI tasks, its always a tradeoff between required accuracy and minimum speed.<br>
 
-Finally, Intel VTune profiler is used to find hotspots and optimize the application code. A shell script vtune_script.sh is fed into the VTune GUI which initiates the project with suitable arguments. The lines in the code which takes more time are identified and possible ones are optimized. For instance, the curve_fit algo seemed to take much time and iterations with 'dogbox' optimize function, which was then replaced with 'lm' method. This has improved efficiency significantly.
+For face detection, INT8 model is giving good accuracy but landmark detection and gaze require maximum accuracy for accurate mouse control. Headpose require reasonable accuracy, hence FP16 is used. <br>
+
+FP16 models commonly regarded as the mid-path between accuracy and speed, as compared to FP32 and INT8. But from the above analysis, it seems like Benchmark (e) gives good balance between accuracy and speed for this project. <br>
+
+Finally, Intel VTune profiler is used to find hotspots and optimize the application code. A shell script vtune_script.sh is fed into the VTune GUI which initiates the project with suitable arguments. The lines in the code which takes more time are identified and possible ones are optimized. For instance, the curve_fit algo seemed to take much time and iterations with 'dogbox' optimize function, which was then replaced with 'lm' method. This has improved efficiency significantly.<br>
 
 
 ## Models Used
 
 ### Gesture Detection Pipeline Models
 Four Pre-trained OpenVINO models are executed on the input video stream, one feeding onto another, to detect a) Face Location b) Head Pose c) Facial Landmarks and d) Gaze Angles. <br>
-a) Face Detection: A pruned MobileNet backbone with efficient depth-wise convolutions is used. The model outputs (x, y) coordinates of the face in the image, which is fed as input to steps (b) and (c)<br>
-b) Head Pose Estimation: The model outputs Yaw, Pitch and Roll angles of head, taking face image as input from step (a)<br>
-c) Facial Landmarks: a custom CNN used to estimate 35 facial landmarks. This model takes cropped face image from step (a) as input and computes facial landmarks, as above. Such a detailed map is required to identify facial gestures, though it is double as heavy in compute demand (0.042 vs 0.021 GFlops), compared to the Landmark Regression model, which gives just 5 facial landmarks.<br>
-d) Gaze Estimation: custom VGG-like CNN for gaze direction estimation.<br><br>
+<ol>
+<li>Face Detection: A pruned MobileNet backbone with efficient depth-wise convolutions is used. The model outputs (x, y) coordinates of the face in the image, which is fed as input to steps (b) and (c)</li>
+<li>Head Pose Estimation: Model outputs Yaw, Pitch and Roll angles of head, taking face image as input from step (a)</li>
+<li>Facial Landmarks: a custom CNN used to estimate 35 facial landmarks. This model takes cropped face image from step (a) as input and computes facial landmarks, as above. Such a detailed map is required to identify facial gestures, though it is double as heavy in compute demand (0.042 vs 0.021 GFlops), compared to the Landmark Regression model, which gives just 5 facial landmarks.</li>
+<li>Gaze Estimation: custom VGG-like CNN for gaze direction estimation.</li><br>
 The network takes 3 inputs: left eye image, right eye image, and three head pose angles - (yaw, pitch, and roll) - and outputs 3-D gaze vector in Cartesian coordinate system.
-
+<ol>
 ### Speech Recognition Models
 To decode sound waves, we use OpenVINO Feature Extraction & Decoder Library which takes in and transcribe the audio coming from the microphone. We have used the speech library as mentioned in OpenVINO toolkit to run speech recognition on the edge, without going online.<br>
 
@@ -219,11 +223,12 @@ You can easily notice that the number of white pixels will suddenly increase whe
 
 But in real world, above logic is not reliable because white pixel value itself can range. We can always use Deep Learning or ML  techniques to classify but its advisable to use a numerical solution, in the interest of efficiency, especially when you code for edge devices. <br><br>
 Lets see how to numerically detect winks using signals in 4 steps!
-1. Calculate frequency of pixels in range 0–255 (histogram)
-2. Compute spread of non-zero pixels in the histogram. When an eye is closed, the spread will take a sudden dip and vice-versa.
-3. Try to fit a inverse sigmoid curve at the tail-end of the above signal.
-4. If successful fit is found, then confirm the 'step down' shape of fitted curve and declare it as 'wink' event. (no curve fit = eye is not winking)
-
+<ol>
+<li> Calculate frequency of pixels in range 0–255 (histogram)</li>
+<li> Compute spread of non-zero pixels in the histogram. When an eye is closed, the spread will take a sudden dip and vice-versa.</li>
+<li> Try to fit a inverse sigmoid curve at the tail-end of the above signal.</li>
+<li> If successful fit is found, then confirm the 'step down' shape of fitted curve and declare it as 'wink' event. (no curve fit = eye is not winking)</li>
+</ol>
 Algorithm Explanation: <br>
 If above steps are not clear, then see how the histogram spread graph falls, when an open eye is closed.
 
@@ -251,9 +256,11 @@ Eye Aspect Ratio (EAR) is computed in this classic facial landmark paper to dete
 Inspired by EAR, we can compute MAR based on the available 4 landmarks obtained from OpenVINO model.
 
 Two gesture events can be identified using MAR:
-1. if MAR > threshold, then person is smiling
-2. if MAR < threshold, then mouth is wide open
-
+<ol>
+<li>if MAR > threshold, then person is smiling</li>
+<li>if MAR < threshold, then mouth is wide open</li>
+</ol>
+	
 We have liberty to attach 2 commands corresponding to these two gestures.
 
 
@@ -279,36 +286,39 @@ This is a software project though the models used and the code written can be de
 
 Here is the complete list of Software, Models and Tools used:<br>
 
-a) Python 3.6 and its libraries, espcially PyAutoGUI for navigation.<br>
+<ol>
+<li> Python 3.6 and its libraries, espcially PyAutoGUI for navigation.</li>
+<li> Intel OpenVINO 2020</li>
 
-b) Intel OpenVINO 2020<br>
+<li> These are the OpenVINO Models Used:</li>
 
-c) These are the OpenVINO Models Used:<br>
-
-i) Detailed Facial Landmark Detection: "facial-landmarks-35-adas-0002"<br>
-ii) Head Pose Estimation: "head-pose-estimation-adas-0001"<br>
-iii) Gaze Estimation: "gaze-estimation-adas-0002"<br>
-iv) Face Detection: "face-detection-adas-0001"<br>
-v) Speech Recognition:<br>
+- Detailed Facial Landmark Detection: "facial-landmarks-35-adas-0002"<br>
+- Head Pose Estimation: "head-pose-estimation-adas-0001"<br>
+- Gaze Estimation: "gaze-estimation-adas-0002"<br>
+- Face Detection: "face-detection-adas-0001"<br>
+- Speech Recognition:<br>
 OpenVINO Inference Engine plugin <br>
 OpenVINO Feature Extraction Library<br>
 OpenVINO Decoder Library<br>
 
-d) Numerical Models
+<li> Numerical Models</li>
 
-i)   Inverse Simoid Curve Fitting using Non-Linear Least Squares<br>
-ii)  Mouth Aspect Ratio derived from EAR concept from a Research Paper [3]<br>
-iii) Peak Finding Algorithm<br>
-iv)  Statistical Analysis<br>
+- Inverse Simoid Curve Fitting using Non-Linear Least Squares<br>
+- Mouth Aspect Ratio derived from EAR concept from a Research Paper [3]<br>
+- Peak Finding Algorithm<br>
+- Statistical Analysis<br>
 
 
-e) Tools Used:<br>
-i) Intel VTune<br>
-ii) Shell Script<br>
-iii) http://fooplot.com as Math Visualization Tool<br>
-iv) Mobile as Light Source<br><br>
+<li> Tools Used:</li>
+- Intel VTune<br>
+- Shell Script<br>
+- http://fooplot.com as Math Visualization Tool<br>
+- Mobile as Light Source<br><br>
  
-f) Laptop with Intel CPU and Webcam.<br>
+<li> Laptop with Intel CPU and Webcam.</li>	
+
+</ol>
+
 
 
 # Creative Elements (20 points)
