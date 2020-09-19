@@ -324,89 +324,89 @@ Here is the **complete list of Software, Models and Tools used:**<br>
 
 # Creative Elements (20 points)
 
-1. Innovative use of Numerical Algorithms
-What makes the project unique is the innovative use of numerical algorithms to replace AI models, in line with the advocacy in my blog here:<br>
+1. **Innovative use of Numerical Algorithms**
+What makes the project unique is the innovative use of numerical algorithms **to replace AI models**, in line with the advocacy in my blog here:<br>
 https://towardsdatascience.com/the-power-of-mathematical-ingenuity-49c7b6cfe05e
 
-This idea is especially important when OpenVINO optimized models are deployed on the edge. The models are already optimized to the extend possible and the computation overhead is with the remaining code. Here, we need to use efficient statistical analysis or numerical algorithms to save the compute. Why to use a sledgehammer to crack a nut?
+	This idea is especially important when OpenVINO optimized models are deployed on the edge. The models are already optimized to the extend possible and the computation overhead is with the remaining code. Here, we need to use efficient statistical analysis or numerical algorithms to save the compute. Why to use a sledgehammer to crack a nut?
 
-a) Eye Wink Detection
-- Inverse Simoid Curve Fitting - Imaginately solved the problem using Non-Linear Least Squares <br>
-- Peak Detection in first differential signals - self written algorithm <br>
+	a) **Eye Wink Detection**
+	- **Inverse Simoid Curve Fitting** - Imaginately solved the problem using Non-Linear Least Squares <br>
+	- **Peak Detection in first differential signals** - self written algorithm <br>
 
-b)  Statistical Analysis of non-zero Histogram Spread - innovative way to efficiently detect and differentiate blink/wink.
-c) Mouth Aspect Ratio to detect smile and yawn (idea derived EAR concept as found in Research Paper [3])
+	b)  **Statistical Analysis of non-zero Histogram Spread** - innovative way to efficiently detect and differentiate blink/wink.
+	c) **Mouth Aspect Ratio to detect smile and yawn** (idea derived EAR concept as found in Research Paper [3])
 
-2. Pipeline of OpenVINO models to solve the dire need of distancing and safety during COVID. The same solution can be used in health care as well for physically challenged or bed ridden or elderly.
+2. Pipeline of OpenVINO models to solve the dire need of **distancing and safety during COVID**. The same solution can be used in health care as well for physically challenged or bed ridden or elderly.
 
-3. Threading and Process-Thread Communication
-To continuously monitor user utterance, I have designed a parallel thread to listen to microphone. But since it is a optimized edge model, the accuracy of OpenVINO pre-trained model was not great. To solve this problem I have introduced some custom tweaks to identify commands. Once the command is identified, it is put into a shared queue, from where the parent process will collect and execute.
+3. **Threading and Process-Thread Communication**<br>
+	To continuously monitor user utterance, I have designed **a parallel thread to listen to microphone.** But since it is a optimized edge model, the accuracy of OpenVINO pre-trained model was not great. To solve this problem I have **introduced some custom tweaks to identify commands. Once the command is identified, it is put into a shared queue, from where the parent process will collect and execute.**
 
-4. Sound Tweak
-The similar sounding synonyms of command words are stored in a dictionary to find the best match. For instance, 'right' command could be recognized as 'write' 
+4. **Sound Tweak**
+	The **similar sounding synonyms of command words are stored in a dictionary to find the best match.** For instance, 'right' command could be recognized as 'write' 
 
-The function is so written that commands and also synonyms can easily be extended. To enable user entry, speech to write function is also enabled. Even the numbers and alphabets are converted in typing mode.
+	**The function is so written that commands and also synonyms can easily be extended. To enable user entry, speech to write function is also enabled.** Even the numbers and alphabets are converted in typing mode.
 
-<code here - add the synonym finder function also>
+	<code here - add the synonym finder function also>
 
-6. Calibration Step
-It was found that the position and size of the interface as well as the location and angle of user with the screen impacts the gaze vector, a lot. Hence, a calibration step was introduced to ask the user to look at the opposite corners of the screen to get the corresponding yaw and pitch vectors. Based on the input from these 2 corners, the gaze vectors corresponding to all the 4 corners are calculated. This information is used to interpolate (x, y) mouse location when the user is looking at an intermediate gaze vector location based on angles. It was a fun to code this algorithm.
+6. **Calibration Step**<br>
+	It was found that the position and size of the interface as well as the location and angle of user with the screen impacts the gaze vector, a lot. Hence, **a calibration step was introduced to ask the user to look at the opposite corners of the screen to get the corresponding yaw and pitch vectors.** Based on the input from these 2 corners, the gaze vectors corresponding to all the 4 corners are calculated. This information is **used to interpolate (x, y) mouse location when the user is looking at an intermediate gaze vector location based on angles.** It was a fun to code this algorithm.
 
-7. Intricate Math involved
+7. **Intricate Math involved**
 
-There is good amount of math involved not only in the numerical models or calibration, but also in post-processing of all models, especially head pose model.
+	There is good amount of math involved not only in the numerical models or calibration, but also in post-processing of all models, especially head pose model.
 
-The head pose model returns only the attitude, i.e.  Yaw, Pitch and Roll angles of the head. To obtain the corresponding direction vector, we need to compute the rotation matrix, using attitude.
+	The head pose model returns only the attitude, i.e.  Yaw, Pitch and Roll angles of the head. To obtain the corresponding direction vector, we need to compute the rotation matrix, using attitude.
 
-We can place a 3D body in any orientation, by rotating along 3 axes, one after the other. Hence, to compute the direction vector, you need to multiply the 3 rotation matrices, derived from Euler angles.
+	We can place a **3D body in any orientation, by rotating along 3 axes, one after the other. Hence, to compute the direction vector, you need to multiply the 3 rotation matrices, derived from Euler angles.**
 
-Rotation matrix for Euler-Cartesian conversion is coded in python to find the Pose Vector: (as seen in visualization)
+	Rotation matrix for Euler-Cartesian conversion is coded in python to find the Pose Vector:
 
-| cos(yaw)cos(pitch) -cos(yaw)sin(pitch)sin(roll)-sin(yaw)cos(roll) -cos(yaw)sin(pitch)cos(roll)+sin(yaw)sin(roll)| <br>
-| sin(yaw)cos(pitch) -sin(yaw)sin(pitch)sin(roll)+cos(yaw)cos(roll) -sin(yaw)sin(pitch)cos(roll)-cos(yaw)sin(roll)| <br>
-| sin(pitch)          cos(pitch)sin(roll)                            cos(pitch)sin(roll)                          | <br>
-
-
-To process gaze vector also, we need to do some math.
-
-    def preprocess_output(self, output, head_position):
-        '''
-        Before feeding the output of this model to the next model, preprocess the output. 
-        '''
-        roll = head_position[2]
-        gaze_vector = output / cv2.norm(output)
-
-        cosValue = math.cos(roll * math.pi / 180.0)
-        sinValue = math.sin(roll * math.pi / 180.0)
-
-        x = gaze_vector[0] * cosValue + gaze_vector[1] * sinValue
-        y = gaze_vector[0] * sinValue + gaze_vector[1] * cosValue
-        return (-x*10, y*10)
+	| cos(yaw)cos(pitch) -cos(yaw)sin(pitch)sin(roll)-sin(yaw)cos(roll) -cos(yaw)sin(pitch)cos(roll)+sin(yaw)sin(roll)| <br>
+	| sin(yaw)cos(pitch) -sin(yaw)sin(pitch)sin(roll)+cos(yaw)cos(roll) -sin(yaw)sin(pitch)cos(roll)-cos(yaw)sin(roll)| <br>
+	| sin(pitch)          cos(pitch)sin(roll)                            cos(pitch)sin(roll)                          | <br>
 
 
+	**To process gaze vector also, we need to do some math.**
 
-8. Stickiness Feature
+	    def preprocess_output(self, output, head_position):
+		'''
+		Before feeding the output of this model to the next model, preprocess the output. 
+		'''
+		roll = head_position[2]
+		gaze_vector = output / cv2.norm(output)
 
-Even after doing all the tweaks, I was not able to stabilize the jittery mouse pointer. Then, I introduced a min value called stickiness to ignore minor eye ball or head movements, to be recognized as input.
+		cosValue = math.cos(roll * math.pi / 180.0)
+		sinValue = math.sin(roll * math.pi / 180.0)
 
-When the stickiness parameter is set right, then only conscious and significant movements are taken as input. This idea has greatly stabilized the system, both in gaze control mode and head pose control mode.
-
-9. Choice of Gestures
-
-The choice of gestures were done in accordance with the metric value we calculate. For instance, as we compute the change in spread of eye histogram, it was natural to choose "looking up" gesture because this will trigger maximum hike in spread. Similarly, yawn was found to be most accurate to measure and hence "mouse left click" event was associated to yawn gesture.
+		x = gaze_vector[0] * cosValue + gaze_vector[1] * sinValue
+		y = gaze_vector[0] * sinValue + gaze_vector[1] * cosValue
+		return (-x*10, y*10)
 
 
-10. This is an individual submission. Hence, all the above ideas are entirely mine and not output of a discussion or team work.
+
+8. **Stickiness Feature**
+
+	Even after doing all the tweaks, I was not able to stabilize the jittery mouse pointer. Then, I **introduced a min value called stickiness to ignore minor eye ball or head movements, to be recognized as input.**
+
+	When the stickiness parameter is set right, then only conscious and significant movements are taken as input. **This idea has greatly stabilized the system**, both in gaze control mode and head pose control mode.
+
+9. **Choice of Gestures**
+
+	The choice of gestures were done in accordance with the metric value we calculate. For instance, as we compute the change in spread of eye histogram, it was natural to choose "looking up" gesture because this will trigger maximum hike in spread. Similarly, yawn was found to be most accurate to measure and hence "mouse left click" event was associated to yawn gesture.
+
+
+10. This is an **individual submission**. Hence, all the above ideas are entirely mine and not output of a discussion or team work.
 
 # Conclusion
 
-The project demonstrates the capability of Intel OpenVINO to handle multiple Edge AI models in sequence and in parallel. Many control inputs are also sourced to demonstrate flexibility. But to deploy custom solution you can choose controls, as you deem fit.
+The project demonstrates the **capability of Intel OpenVINO to handle multiple Edge AI models in sequence and in parallel.** Many control inputs are also sourced to demonstrate flexibility. But to deploy custom solution you can choose controls, as you deem fit.
 
-For instance, Gaze control may be ideal for big screen while head pose control for laptop screen. Either way, Sound Control can help to accept custom form entries or vocal commands. Gesture-action mapping can also be modified. Yet the point you can drive home is the possibility to chain multiple hardware optimized AI models on the Edge, coupled with efficient numerical computing to solve interesting problems.
+For instance, Gaze control may be ideal for big screen while head pose control for laptop screen. Either way, Sound Control can help to accept custom form entries or vocal commands. Gesture-action mapping can also be modified. Yet the point you can drive home is **the possibility to chain multiple hardware optimized AI models on the Edge, coupled with efficient numerical computing to solve interesting problems.**
 
 
 
 ## References
-[1] Intel OpenVINO Official Docs: https://docs.openvinotoolkit.org <br>
-[2] Intel® Edge AI for IoT Nanodegree by Udacity. Idea inspired from Final Course Project. https://classroom.udacity.com/nanodegrees/nd131 <br>
-[3] Real-Time Eye Blink Detection using Facial Landmarks by Tereza Soukupova and Jan Cech, Faculty of E.E., Czech Technical University in Prague.
+[1] **Intel OpenVINO Official Docs**: https://docs.openvinotoolkit.org <br>
+[2] **Intel® Edge AI for IoT Nanodegree** by Udacity. Idea inspired from Final Course Project. https://classroom.udacity.com/nanodegrees/nd131 <br>
+[3] **Real-Time Eye Blink Detection using Facial Landmarks** by Tereza Soukupova and Jan Cech, Faculty of E.E., Czech Technical University in Prague.
