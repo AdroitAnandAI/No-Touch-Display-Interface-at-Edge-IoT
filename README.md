@@ -192,17 +192,15 @@ Finally, **Intel VTune profiler is used to find hotspots and optimize the applic
 
 ### Gesture Detection Pipeline Models
 **Four Pre-trained OpenVINO models are executed** on the input video stream, one feeding onto another, to detect a) Face Location b) Head Pose c) Facial Landmarks and d) Gaze Angles. <br>
-<ol>
-<li>Face Detection: A pruned MobileNet backbone with efficient depth-wise convolutions is used. The model outputs (x, y) coordinates of the face in the image, which is fed as input to steps (b) and (c)</li>
-<li>Head Pose Estimation: Model outputs Yaw, Pitch and Roll angles of head, taking face image as input from step (a)</li>
-<li>Facial Landmarks: a custom CNN used to estimate 35 facial landmarks. This model takes cropped face image from step (a) as input and computes facial landmarks, as above. Such a detailed map is required to identify facial gestures, though it is double as heavy in compute demand (0.042 vs 0.021 GFlops), compared to the Landmark Regression model, which gives just 5 facial landmarks.</li>
-<li>Gaze Estimation: custom VGG-like CNN for gaze direction estimation.</li><br>
+
+1. Face Detection: A pruned MobileNet backbone with efficient depth-wise convolutions is used. The model outputs (x, y) coordinates of the face in the image, which is fed as input to steps (b) and (c)
+2. Head Pose Estimation: Model outputs Yaw, Pitch and Roll angles of head, taking face image as input from step (a)
+3. Facial Landmarks: a custom CNN used to estimate 35 facial landmarks. This model takes cropped face image from step (a) as input and computes facial landmarks, as above. Such a detailed map is required to identify facial gestures, though it is double as heavy in compute demand (0.042 vs 0.021 GFlops), compared to the Landmark Regression model, which gives just 5 facial landmarks.
+4. Gaze Estimation: custom VGG-like CNN for gaze direction estimation.<br>
 The network takes 3 inputs: left eye image, right eye image, and three head pose angles - (yaw, pitch, and roll) - and outputs 3-D gaze vector in Cartesian coordinate system.
-</ol>
 
 ### Speech Recognition Models
 To decode sound waves, we use OpenVINO Feature Extraction & Decoder Library which takes in and transcribe the audio coming from the microphone. We have used the speech library as mentioned in OpenVINO toolkit to run speech recognition on the edge, without going online.<br>
-
 
 ### Post-Processing Model Outputs
 To feed one model output to another model as input, the return values of each model need to be decoded and post-processed. 
@@ -222,12 +220,12 @@ You can easily notice that the number of white pixels will suddenly increase whe
 
 But in real world, above logic is not reliable because white pixel value itself can range. We can always use Deep Learning or ML  techniques to classify but its advisable to use a numerical solution, in the interest of efficiency, especially when you code for edge devices. <br><br>
 Lets see how to numerically detect winks using signals in 4 steps!
-<ol>
-<li> Calculate frequency of pixels in range 0–255 (histogram)</li>
-<li> Compute spread of non-zero pixels in the histogram. When an eye is closed, the spread will take a sudden dip and vice-versa.</li>
-<li> Try to fit a inverse sigmoid curve at the tail-end of the above signal.</li>
-<li> If successful fit is found, then confirm the 'step down' shape of fitted curve and declare it as 'wink' event. (no curve fit = eye is not winking)</li>
-</ol>
+
+1. Calculate frequency of pixels in range 0–255 (histogram)
+2. Compute spread of non-zero pixels in the histogram. When an eye is closed, the spread will take a sudden dip and vice-versa.
+3. Try to fit a inverse sigmoid curve at the tail-end of the above signal.
+4. If successful fit is found, then confirm the 'step down' shape of fitted curve and declare it as 'wink' event. (no curve fit = eye is not winking)
+
 **Algorithm Explanation:** <br>
 If above steps are not clear, then see how the histogram spread graph falls, when an open eye is closed.
 
@@ -255,10 +253,9 @@ Eye Aspect Ratio (EAR) is computed in this classic facial landmark paper to dete
 Inspired by EAR, **we can compute MAR based on the available 4 mouth landmarks **obtained from OpenVINO model.
 
 Two gesture events can be identified using MAR:
-<ol>
-<li>if MAR > threshold, then person is smiling</li>
-<li>if MAR < threshold, then mouth is wide open</li>
-</ol>
+
+1. **if MAR > threshold**, then person is smiling
+2. **if MAR < threshold**, then mouth is wide open
 	
 We have liberty to attach 2 commands corresponding to these two gestures.
 
