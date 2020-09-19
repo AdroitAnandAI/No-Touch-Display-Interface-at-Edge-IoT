@@ -298,9 +298,9 @@ Here is the **complete list of Software, Models and Tools used:**<br>
 - **Gaze Estimation**: "gaze-estimation-adas-0002"<br>
 - **Face Detection**: "face-detection-adas-0001"<br>
 - **Speech Recognition**:<br>
-OpenVINO Inference Engine plugin <br>
-OpenVINO Feature Extraction Library<br>
-OpenVINO Decoder Library<br>
+- OpenVINO Inference Engine plugin <br>
+- OpenVINO Feature Extraction Library<br>
+- OpenVINO Decoder Library<br>
 
 <li> Numerical Models</li>
 
@@ -311,8 +311,8 @@ OpenVINO Decoder Library<br>
 
 
 <li> Tools Used:</li>
-- **Intel VTune**<br>
-- **Shell Script**<br>
+- Intel VTune<br>
+- Shell Script<br>
 - http://fooplot.com as Math Visualization Tool<br>
 - Mobile as Light Source<br><br>
  
@@ -324,36 +324,35 @@ OpenVINO Decoder Library<br>
 
 # Creative Elements (20 points)
 
-<ol>
-<li> Innovative use of Numerical Algorithms</li>
+1. Innovative use of Numerical Algorithms
 What makes the project unique is the innovative use of numerical algorithms to replace AI models, in line with the advocacy in my blog here:<br>
 https://towardsdatascience.com/the-power-of-mathematical-ingenuity-49c7b6cfe05e
 
 This idea is especially important when OpenVINO optimized models are deployed on the edge. The models are already optimized to the extend possible and the computation overhead is with the remaining code. Here, we need to use efficient statistical analysis or numerical algorithms to save the compute. Why to use a sledgehammer to crack a nut?
 
 a) Eye Wink Detection
-- Inverse Simoid Curve Fitting - Imaginately solved the problem using Non-Linear Least Squares
-- Peak Detection in first differential signals - self written algorithm
+- Inverse Simoid Curve Fitting - Imaginately solved the problem using Non-Linear Least Squares <br>
+- Peak Detection in first differential signals - self written algorithm <br>
 
 b)  Statistical Analysis of non-zero Histogram Spread - innovative way to efficiently detect and differentiate blink/wink.
 c) Mouth Aspect Ratio to detect smile and yawn (idea derived EAR concept as found in Research Paper [3])
 
-<li> Pipeline of OpenVINO models to solve the dire need of distancing and safety during COVID. The same solution can be used in health care as well for physically challenged or bed ridden or elderly.
+2. Pipeline of OpenVINO models to solve the dire need of distancing and safety during COVID. The same solution can be used in health care as well for physically challenged or bed ridden or elderly.
 
-<li> Threading and Process-Thread Communication</li>
+3. Threading and Process-Thread Communication
 To continuously monitor user utterance, I have designed a parallel thread to listen to microphone. But since it is a optimized edge model, the accuracy of OpenVINO pre-trained model was not great. To solve this problem I have introduced some custom tweaks to identify commands. Once the command is identified, it is put into a shared queue, from where the parent process will collect and execute.
 
-<li> Sound Tweak</li>
+4. Sound Tweak
 The similar sounding synonyms of command words are stored in a dictionary to find the best match. For instance, 'right' command could be recognized as 'write' 
 
 The function is so written that commands and also synonyms can easily be extended. To enable user entry, speech to write function is also enabled. Even the numbers and alphabets are converted in typing mode.
 
 <code here - add the synonym finder function also>
 
-<li> Calibration Step</li>
+6. Calibration Step
 It was found that the position and size of the interface as well as the location and angle of user with the screen impacts the gaze vector, a lot. Hence, a calibration step was introduced to ask the user to look at the opposite corners of the screen to get the corresponding yaw and pitch vectors. Based on the input from these 2 corners, the gaze vectors corresponding to all the 4 corners are calculated. This information is used to interpolate (x, y) mouse location when the user is looking at an intermediate gaze vector location based on angles. It was a fun to code this algorithm.
 
-<li> Intricate Math involved</li>
+7. Intricate Math involved
 
 There is good amount of math involved not only in the numerical models or calibration, but also in post-processing of all models, especially head pose model.
 
@@ -386,19 +385,18 @@ To process gaze vector also, we need to do some math.
 
 
 
-<li> Stickiness Feature</li>
+8. Stickiness Feature
 
 Even after doing all the tweaks, I was not able to stabilize the jittery mouse pointer. Then, I introduced a min value called stickiness to ignore minor eye ball or head movements, to be recognized as input.
 
 When the stickiness parameter is set right, then only conscious and significant movements are taken as input. This idea has greatly stabilized the system, both in gaze control mode and head pose control mode.
 
-<li> Choice of Gestures</li>
+9. Choice of Gestures
 
 The choice of gestures were done in accordance with the metric value we calculate. For instance, as we compute the change in spread of eye histogram, it was natural to choose "looking up" gesture because this will trigger maximum hike in spread. Similarly, yawn was found to be most accurate to measure and hence "mouse left click" event was associated to yawn gesture.
 
 
-<li> This is an individual submission. Hence, all the above ideas are entirely mine and not output of a discussion or team work.</li>
-</ol>
+10. This is an individual submission. Hence, all the above ideas are entirely mine and not output of a discussion or team work.
 
 # Conclusion
 
