@@ -15,37 +15,21 @@ Ain't it nice to do it all  on your device itself? Imagine a bed-side assistant 
 
 **In this project, we will try to build a Human-Computer Interaction (HCI) module which intelligently orchestrates 5 concurrently-run AI models, one feeding onto another. While the models for face detection, head pose estimation, facial landmarks computation and angle of gaze estimation identify gesture control inputs, another thread is deployed to run offline speech recognition, which communicates with the parent process to give parallel control commands based on user utterance, to assist and augment gesture control.**
 
-## Benefits & Features
+<p align="center">
+  <img src="Images/eyeWink_Graph_GIF_Small_Size.gif">
+</p>  
 
-a) To control **public kiosks without touching the device** <br>
-b) To control **edge devices with gestures and also sound** <br>
-c) To efficiently deploy complex AI solutions at the edge <br>
-d) Usage of **efficient Numerical Algorithms along with hardware optimized OpenVINO models**<br>
-e) Use visual interaction where touch is not possible or advisable <br>
-f) Multiple **facial features are identified and mapped to specific action triggers** <br>
-g) **Sound control is done on the edge**, without needing the device to be online. <br>
-h) Demonstrates the capability of Intel OpenVINO to handle **multiple Edge AI models in sequence and in parallel.** <br>
-i) Many control inputs are also sourced to demonstrate the flexibility. <br>
-j) Stickiness feature can be tuned to set the minimum movement of head of gaze to be ignored.  <br>
-k) Gesture-action mapping can also be modified. Even the control mode can be switched with gestures.  <br> <br>
-
-
-## Social impact
-
-This project has got **high social impact index.** Our most pressing concern, at present, is to control the spread of COVID. To facilitate this, **we need to allow touch free interaction of all public devices.** To sanitize hand, right before and after using serums is not a practical solution, in long run. People may fail to adhere. Rather a practical solution is to avoid touch to the extend possible. **This project addresses this problem using multiple AI models and using OpenVINO to deploy them on the edge devices. This will significantly improve the health and safety standards among the public.**
-
-However, the public use of this project is not limited to the spread of Corona vius. To quote another healh care use case, **we can use the same project to take visual commands or help requests from a bed-ridden or a physically challenged patient, be it hospital or home. **
-
-# Project Documentation
 
 ## Project Demo
 
 <video>
 
 
-## For hardware and software projects, you can include circuit diagrams using software like Fritzing.org and/or take detailed photographs.
-arch diagram
+## Architecture Diagram
 
+<p align="center">
+  <img src="Images/Architecture.png">
+</p> 
 
 
 ## How To run:
@@ -108,11 +92,35 @@ python /opt/intel/openvino/deployment_tools/tools/model_downloader/downloader.py
 ```
 
 
+## Benefits & Features
+
+a) To control **public kiosks without touching the device** <br>
+b) To control **edge devices with gestures and also sound** <br>
+c) To efficiently deploy complex AI solutions at the edge <br>
+d) Usage of **efficient Numerical Algorithms along with hardware optimized OpenVINO models**<br>
+e) Use visual interaction where touch is not possible or advisable <br>
+f) Multiple **facial features are identified and mapped to specific action triggers** <br>
+g) **Sound control is done on the edge**, without needing the device to be online. <br>
+h) Demonstrates the capability of Intel OpenVINO to handle **multiple Edge AI models in sequence and in parallel.** <br>
+i) Many control inputs are also sourced to demonstrate the flexibility. <br>
+j) Stickiness feature can be tuned to set the minimum movement of head of gaze to be ignored.  <br>
+k) Gesture-action mapping can also be modified. Even the control mode can be switched with gestures.  <br> <br>
+
+
+## Social impact
+
+This project has got **high social impact index.** Our most pressing concern, at present, is to control the spread of COVID. To facilitate this, **we need to allow touch free interaction of all public devices.** To sanitize hand, right before and after using serums is not a practical solution, in long run. People may fail to adhere. Rather a practical solution is to avoid touch to the extend possible. **This project addresses this problem using multiple AI models and using OpenVINO to deploy them on the edge devices. This will significantly improve the health and safety standards among the public.**
+
+However, the public use of this project is not limited to the spread of Corona vius. To quote another healh care use case, **we can use the same project to take visual commands or help requests from a bed-ridden or a physically challenged patient, be it hospital or home. **
+
+
+
 ## For software projects, you can include working code with helpful comments
 code here
 
 
 
+# Project Documentation
 
 ## Control Modes
 
@@ -195,9 +203,17 @@ Finally, **Intel VTune profiler is used to find hotspots and optimize the applic
 
 1. Face Detection: A pruned MobileNet backbone with efficient depth-wise convolutions is used. The model outputs (x, y) coordinates of the face in the image, which is fed as input to steps (b) and (c)
 2. Head Pose Estimation: Model outputs Yaw, Pitch and Roll angles of head, taking face image as input from step (a)
+<p align="center">
+  <img src="Images/head1.png">
+</p> 
+
 3. Facial Landmarks: a custom CNN used to estimate 35 facial landmarks. This model takes cropped face image from step (a) as input and computes facial landmarks, as above. Such a detailed map is required to identify facial gestures, though it is double as heavy in compute demand (0.042 vs 0.021 GFlops), compared to the Landmark Regression model, which gives just 5 facial landmarks.
 4. Gaze Estimation: custom VGG-like CNN for gaze direction estimation.<br>
 The network takes 3 inputs: left eye image, right eye image, and three head pose angles - (yaw, pitch, and roll) - and outputs 3-D gaze vector in Cartesian coordinate system.
+
+<p align="center">
+  <img src="Images/gaze.png">
+</p> 
 
 ### Speech Recognition Models
 To decode sound waves, we use OpenVINO Feature Extraction & Decoder Library which takes in and transcribe the audio coming from the microphone. We have used the speech library as mentioned in OpenVINO toolkit to run speech recognition on the edge, without going online.<br>
@@ -210,11 +226,19 @@ Similarly, the facial landmarks model returns ratio of input image size. Hence, 
 
 While output of facial landmark and gaze estimation models can be easily post-processed as above, the output of head pose estimation model has to converted from Euler angles to rotation matrices. 
 
+<p align="center">
+  <img src="Images/eqn.png">
+</p> 
+
 
 ### Numerical Models
 
 ### Eye Wink Detection 
 To use a kiosk, you also need to trigger events, such as 'Left Click', 'Right Click', 'Scroll', 'Drag' etc.  In order to do so, **a set of pre-defined gestures need to be mapped to each event, and be recognized from the visual input.** Two events can be mapped to 'wink' event of left and right eye, but they need to be identified as 'wink'.<br>
+
+<p align="center">
+  <img src="Images/eyeWink.gif">
+</p>  
 
 You can easily notice that the number of white pixels will suddenly increase when the eyes are open, and decrease when closed. We can just count the white pixels to differentiate open vs closed eye.<br>
 
@@ -252,13 +276,18 @@ Eye Aspect Ratio (EAR) is computed in this classic facial landmark paper to dete
 
 Inspired by EAR, **we can compute MAR based on the available 4 mouth landmarks **obtained from OpenVINO model.
 
+
+<p align="center">
+  <img src="Images/MAR.png">
+</p> 
+
 Two gesture events can be identified using MAR:
 
 1. **if MAR > threshold**, then person is smiling
 2. **if MAR < threshold**, then mouth is wide open
 	
 We have liberty to attach 2 commands corresponding to these two gestures.
-
+  
 
 ## Threading and Process-Thread Communication 
 To enhance control, we can enable sound based navigation also, along with gesture control. However, system then needs to continuously monitor user utterances to identify commands while it is analyzes image frames from input video stream. <br>
@@ -318,7 +347,6 @@ Here is the **complete list of Software, Models and Tools used:**<br>
 </ol>
 
 
-
 # Creative Elements (20 points)
 
 1. **Innovative use of Numerical Algorithms**
@@ -334,6 +362,11 @@ https://towardsdatascience.com/the-power-of-mathematical-ingenuity-49c7b6cfe05e
 	b)  **Statistical Analysis of non-zero Histogram Spread** - innovative way to efficiently detect and differentiate blink/wink.
 	c) **Mouth Aspect Ratio to detect smile and yawn** (idea derived EAR concept as found in Research Paper [3])
 
+<p align="center">
+  <img src="Images/Graph_Signal_Fall.gif">
+</p> 
+
+
 2. Pipeline of OpenVINO models to solve the dire need of **distancing and safety during COVID**. The same solution can be used in health care as well for physically challenged or bed ridden or elderly.
 
 3. **Threading and Process-Thread Communication**<br>
@@ -342,9 +375,7 @@ https://towardsdatascience.com/the-power-of-mathematical-ingenuity-49c7b6cfe05e
 4. **Sound Tweak**
 	The **similar sounding synonyms of command words are stored in a dictionary to find the best match.** For instance, 'right' command could be recognized as 'write' 
 
-	**The function is so written that commands and also synonyms can easily be extended. To enable user entry, speech to write function is also enabled.** Even the numbers and alphabets are converted in typing mode.
-
-	<code here - add the synonym finder function also>
+	**The function is so written that commands and also synonyms can easily be extended. To enable user entry, speech to write function is also enabled.** Even the numbers and alphabets are converted in typing mode.<br>
 
 6. **Calibration Step**<br>
 	It was found that the position and size of the interface as well as the location and angle of user with the screen impacts the gaze vector, a lot. Hence, **a calibration step was introduced to ask the user to look at the opposite corners of the screen to get the corresponding yaw and pitch vectors.** Based on the input from these 2 corners, the gaze vectors corresponding to all the 4 corners are calculated. This information is **used to interpolate (x, y) mouse location when the user is looking at an intermediate gaze vector location based on angles.** It was a fun to code this algorithm.
@@ -392,6 +423,9 @@ https://towardsdatascience.com/the-power-of-mathematical-ingenuity-49c7b6cfe05e
 
 	The choice of gestures were done in accordance with the metric value we calculate. For instance, as we compute the change in spread of eye histogram, it was natural to choose "looking up" gesture because this will trigger maximum hike in spread. Similarly, yawn was found to be most accurate to measure and hence "mouse left click" event was associated to yawn gesture.
 
+<p align="center">
+  <img src="Images/gesture.png">
+</p> 
 
 10. This is an **individual submission**. Hence, all the above ideas are entirely mine and not output of a discussion or team work.
 
