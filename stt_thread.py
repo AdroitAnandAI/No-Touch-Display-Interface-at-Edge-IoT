@@ -10,7 +10,6 @@ from speech_library.speech_manager import SpeechManager
 from speech_library.speech_proxy import SPEECH_CONFIG
 
 
-# LOG_DIR = os.path.join(os.path.pardir, 'log')
 MODELS_DIR = os.path.join(os.path.pardir, 'models')
 
 
@@ -37,9 +36,6 @@ def load_device():
     device_list, default_input_index, loopback_index = \
     							audio_helper.get_input_device_list()
 
-    # indices = [loopback_index, default_input_index] + [0] * (len(self._device_controls)-2)
-    # for i, controller in enumerate(self._device_controls):
-    #     controller.reload_device_list(device_list, indices[i])
     if not device_list:
         print("No audio devices available")
 
@@ -73,7 +69,6 @@ def main():
     control_syn['up'].extend(['up', 'hop', 'hope', 'out'])
     control_syn['down'].extend(['down', 'doubt', 'though'])
 
-    # controls = {}
 
     device_list = load_device()
 
@@ -102,7 +97,6 @@ def main():
     					args=(speech, stt), daemon=True)
     reading_thread.start()
 
-    # input("Press Enter to continue...")
 
     while (True):
 
@@ -110,13 +104,12 @@ def main():
         if (stt.qsize() > 0):
         	
         	utterance = stt.get()
-        	print("From Parent: " + utterance)
-        	# lastUtter = (' ').join(utterance.split(' ')[-3:])
+        	# print("From Parent: " + utterance)
         	
         	detectEvent(utterance, controls, control_syn)
 
         k = cv2.waitKey(1) & 0xFF
-        # print(k)
+
         # press 'q' to exit
         if k == ord('q'):
             break

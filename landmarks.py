@@ -30,8 +30,6 @@ class LandmarksDetect:
         self.core = IECore()
         self.network = self.plugin.load(network=self.net, num_requests=2)
 
-        # self.network = self.core.read_network(model=str(model_name),
-        #                                       weights=str(os.path.splitext(model_name)[0] + ".bin"))
         self.input = next(iter(self.network.inputs))
         self.output = next(iter(self.network.outputs))
 
@@ -54,7 +52,7 @@ class LandmarksDetect:
         This method is meant for running predictions on the input image.
         '''
         processed_frame = self.preprocess_input(image)
-        # inference_start_time = time.time()
+
         self.exec_network.start_async(request_id=self.request_id,
                                       inputs={self.input: processed_frame})
 
@@ -85,8 +83,7 @@ class LandmarksDetect:
         return frame
 
     def scaleBoxes(self, p, w, h):
-        # print('scaleBoxes')
-        # print(tuple((p * np.array([w, h])).astype(np.int32)))
+
         return tuple((p * np.array([w, h])).astype(np.int32))
 
     def preprocess_output(self, outputs, image):
@@ -99,7 +96,6 @@ class LandmarksDetect:
         h, w = image.shape[0:2]
         paddingConstant = 10
 
-        # print(outputs['align_fc3'])
         landmarks = outputs['align_fc3']
 
         # Computing the left eye box corners

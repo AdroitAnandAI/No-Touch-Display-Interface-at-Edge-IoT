@@ -56,11 +56,11 @@ class FaceDetector:
         This method is meant for running predictions on the input image.
         '''
         processed_frame = self.preprocess_input(image)
-        # inference_start_time = time.time()
+
         self.infer_request_handle = self.exec_network.start_async(request_id=self.request_id,
                                       inputs={self.input: processed_frame})
 
-        # self.infer_request_handle.get_perf_counts()
+        # self.infer_request_handle.get_perf_counts() #shows performance metrics
 
         self.exec_network.requests[self.request_id].wait()
         result = self.exec_network.requests[self.request_id].outputs[self.output]

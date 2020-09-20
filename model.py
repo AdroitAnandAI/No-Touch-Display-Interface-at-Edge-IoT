@@ -28,8 +28,6 @@ class FaceDetector:
         self.core = IECore()
         self.network = self.plugin.load(network=self.net, num_requests=2)
 
-        # self.network = self.core.read_network(model=str(model_name),
-        #                                       weights=str(os.path.splitext(model_name)[0] + ".bin"))
         self.input = next(iter(self.network.inputs))
         self.output = next(iter(self.network.outputs))
 
@@ -47,12 +45,12 @@ class FaceDetector:
         TODO: You will need to complete this method.
         This method is meant for running predictions on the input image.
         '''
-        # print('asdfasdf1')
+        
         processed_frame = self.preprocess_input(image)
-        # inference_start_time = time.time()
+
         self.exec_network.start_async(request_id=self.request_id,
                                       inputs={self.input: processed_frame})
-        # print('asdfasdf2')
+
         self.exec_network.requests[self.request_id].wait()
         result = self.exec_network.requests[self.request_id].outputs[self.output]
 
@@ -98,6 +96,3 @@ class FaceDetector:
         x_min, y_min, x_max, y_max = box
         cropped_face = image[y_min:y_max, x_min:x_max]
         return cropped_face, box
-
-        # print(len(outputs))
-        # return None, None

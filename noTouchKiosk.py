@@ -42,8 +42,6 @@ from speech_library.speech_manager import SpeechManager
 from speech_library.speech_proxy import SPEECH_CONFIG
 
 
-
-# LOG_DIR = os.path.join(os.path.pardir, 'log')
 MODELS_DIR = os.path.join(os.path.pardir, 'models')
 
 
@@ -60,7 +58,6 @@ def received_frames(frames, speech, stt):
     rh_result = utt_text.decode("utf-8").strip().lower()
 
     if (len(rh_result) > 0):
-        # print('inside thread: ' + rh_result)
         stt.put(rh_result)
 
 
@@ -70,9 +67,6 @@ def load_device():
     device_list, default_input_index, loopback_index = \
                                 audio_helper.get_input_device_list()
 
-    # indices = [loopback_index, default_input_index] + [0] * (len(self._device_controls)-2)
-    # for i, controller in enumerate(self._device_controls):
-    #     controller.reload_device_list(device_list, indices[i])
     if not device_list:
         print("No audio devices available")
 
@@ -92,13 +86,13 @@ def detectSoundEvent(utterance, controls, control_syn):
                     print('Event Trigger: ' + control)
                     return control, utters[-1]
 
-    return None, utters[-1]
+    return None, utters[0] #last word will return as reversed
 
 
-def isFaceInBounds(headYawPitchBounds, yaw, pitch):
+def isFaceInBounds(yaw, pitch):
 
-    minBound = headYawPitchBounds[0]
-    maxBound = headYawPitchBounds[1]
+    minBound = -20
+    maxBound = +20
 
     if yaw >= minBound and yaw <= maxBound and \
          pitch >= minBound and pitch <= maxBound:
@@ -109,8 +103,7 @@ def isFaceInBounds(headYawPitchBounds, yaw, pitch):
 
 
 def sigmoid(x, L ,x0, k, b):
-    # print(k)
-    # print(np.exp(-k*(x-x0)))
+
     y = L / (1 + np.exp(k*(x-x0)))+b
     return (y)
 
@@ -119,43 +112,27 @@ def isCurveSigmoid(pixelCounts, count):
 
     try:
         xIndex = len(pixelCounts)
-        # y = list(range(xIndex))
-        # print(y)
 
         p0 = [max(pixelCounts), np.median(xIndex),1,min(pixelCounts)] # this is an mandatory initial guess
 
-        popt, pcov = curve_fit(sigmoid, list(range(xIndex)), pixelCounts, p0, method='dogbox', maxfev=5000)
-
-        # popt, pcov = curve_fit(sigmoid, list(range(xIndex)), pixelCounts)
-
-        # plt.plot(list(range(xIndex)), sigmoid(list(range(xIndex)), *popt), 'r-', label='fit')
-        # plt.show()
+        popt, pcov = curve_fit(sigmoid, list(range(xIndex)), pixelCounts, p0, method='lm', maxfev=5000)
 
         yVals = sigmoid(list(range(xIndex)), *popt)
 
-        # medianY = np.median(yVals)
-
-        print("Pixel Count Size = " + str(xIndex))
-        # print("Median Diff = " + str(np.median(yVals[:10]) - np.median(yVals[-10:])))
         # May have to check for a value much less than Median to avoid false positives.
         if np.median(yVals[:10]) - np.median(yVals[-10:]) > 15:
             print('Triggered Event')
-            print(yVals)
-            xVals = [n+count-40 for n in list(range(xIndex))]
-            plt.plot(xVals, sigmoid(list(range(xIndex)), *popt), 'b--', label='Curve Fit')
-            # plt.legend()
-            plt.pause(1.5)
             return True
 
     except Exception as err:
         print(traceback.format_exc())
-        # PrintException()
 
     return False
 
 
 
-def checkEvent(image, pixelCount, frame_count, numFrames = 50):
+
+def findCurveFit(eye, image, pixelCount, frame_count, numFrames = 50):
 
     triggerEvent = False
 
@@ -177,6 +154,7 @@ def checkEvent(image, pixelCount, frame_count, numFrames = 50):
 
         if isCurveSigmoid(pixelCount[-numFrames+10:], len(pixelCount)):
             print('Event Triggered...')
+
             pixelCount.clear()
             plt.clf()
             triggerEvent = True
@@ -184,51 +162,118 @@ def checkEvent(image, pixelCount, frame_count, numFrames = 50):
 
     return pixelCount, triggerEvent
 
-    # # Convert to gray scale as histogram works well on 256 values.
-    # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    # # calculate frequency of pixels in range 0-255 
-    # histg = cv2.calcHist([gray],[0],None,[256],[0,256])
-
-    # # hack to know whether eye is closed or not.
-    # # more spread of pixels in a histogram signifies an opened eye
-    # activePixels = np.count_nonzero(histg)
-    # pixelCount.append(activePixels)
-
-    # # If eyes are open and closed for same amount of time then average was 
-    # # enough to find if eyes are open or closed. But since eyes are open 
-    # # most of the time, the mid of max and min is taken. This will cancel 
-    # # out the difference in  lighting conditions also.
-    # pixelMid = (np.max(pixelCount) + np.min(pixelCount)) / 2
-
-    # if (len(pixelCount) > 30 and 
-    #     activePixels > pixelMid):
-
-    #     # Eyes are open
-    #     isEyeOpen.append(True)
-    # else:
-    #     # Eyes are closed
-    #     isEyeOpen.append(False)
 
 
-    # if (len(isEyeOpen) > lastFrames):
 
-    #     print(isEyeOpen[-lastFrames:])
-    #     # Checking whether all false, i.e. eyes are closed in all frames.
-    #     if (np.any(isEyeOpen[-lastFrames:]) == False):
-    #         print("EVENT TRIGGERED")
-    #         isEyeOpen.clear()
-    #         pixelCount.clear()
-    #         return pixelCount, isEyeOpen, True
+def findClosurebyStats(eye, image, pixelCount, frame_count, samples = 20, numFrames = 50):
+    
+    triggerEvent = False
+    medianDiff = 0
 
-    # return pixelCount, isEyeOpen, False
+    if (len(image) == 0):
+        return pixelCount, False, 0
+
+    # Convert to gray scale as histogram works well on 256 values.
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # calculate frequency of pixels in range 0-255 
+    histg = cv2.calcHist([gray],[0],None,[256],[0,256])
+
+    # hack to know whether eye is closed or not.
+    # more spread of pixels in a histogram signifies an opened eye
+    activePixels = np.count_nonzero(histg)
+    pixelCount.append(activePixels)
+
+    if len(pixelCount) > numFrames:
+
+        tailCounts = pixelCount[-numFrames+10:]
+
+        begin = tailCounts[:samples]
+
+        end = tailCounts[-samples:]
+
+        medianDiff = np.median(begin) - np.median(end)
+
+        if  medianDiff > 10 and np.std(begin) < 5 and np.std(end) < 5:
+            print('Event Triggered')
+            pixelCount.clear()
+            triggerEvent = True
+
+    return pixelCount, triggerEvent, medianDiff
+
+
+def findPeaks(image, pixelCount, frame_count, numFrames = 50):
+
+    triggerEvent = False
+
+    if (len(image) == 0):
+        return pixelCount, False
+
+    # Convert to gray scale as histogram works well on 256 values.
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # calculate frequency of pixels in range 0-255 
+    histg = cv2.calcHist([gray],[0],None,[256],[0,256])
+
+    # hack to know whether eye is closed or not.
+    # more spread of pixels in a histogram signifies an opened eye
+    activePixels = np.count_nonzero(histg)
+    pixelCount.append(activePixels)
+
+    if len(pixelCount) > numFrames:
+
+        diff = np.diff(pixelCount[-numFrames+10:])
+
+        peaks = peakutils.peak.indexes(np.array(diff), thres=0.8, min_dist=2)
+        x =   np.array([i * -1 for i in diff])
+        peaksReflected = peakutils.peak.indexes(np.array(x), thres=0.8, min_dist=2)
+
+        # if peak is there on upright and reflected signal then the closed eyes are open soon
+        # i.e. it denotes a blink and not a gesture. But if peak is found only on the reflected
+        # signal then eyes are closed for long time to indicate gesture.
+        if (peaksReflected.size > 0 and x[peaksReflected[0]] > 0 and peaks.size == 0):
+            print('Event Triggered...')
+
+            pixelCount.clear()
+            triggerEvent = True
+
+    return pixelCount, triggerEvent
+
+
+
+def hikeControlMode(controlMode):
+
+    print('increment control')
+    # Control will switch from gaze to head 
+    # to sound and then switch back to no control
+    if controlMode < 3:
+        controlMode += 1
+    else:
+        controlMode = 0
+
+    return controlMode
+
+def dipControlMode(controlMode):
+
+    print('decrement control')
+    # Control will switch from gaze to head 
+    # to sound and then switch back to no control
+    if controlMode > 0:
+        controlMode -= 1
+    else:
+        controlMode = 3
+
+    return controlMode
+
 
 def imshow(windowname, frame, width=None):
 
     if width is not None:
         frame = imutils.resize(frame, width=width)
 
+    # cv2.namedWindow(windowname, cv2.WINDOW_NORMAL)
     cv2.imshow(windowname, frame)
+    # cv2.resizeWindow(windowname, 300,300)
     cv2.waitKey(25)
 
 def isMoveSignificant(lastPosition, stickiness, x, y):
@@ -236,8 +281,8 @@ def isMoveSignificant(lastPosition, stickiness, x, y):
     last_x = lastPosition[0]
     last_y = lastPosition[1]
 
-    print("Previous X = " + str(last_x) + ". Previous Y = " + \
-        str(last_y) + ". Current X = " + str(x) + ". Current Y = " + str(y))
+    # print("Previous X = " + str(last_x) + ". Previous Y = " + \
+    #     str(last_y) + ". Current X = " + str(x) + ". Current Y = " + str(y))
 
     if abs(last_x - x) > stickiness or abs(last_y - y) > stickiness:
         return True
@@ -328,17 +373,20 @@ def main(args):
     ####################
     # Control Commands #
     ####################
-    # Left Click = Smile 
-    # Right Click = Right Eye Blink
-    # Scroll Enabled = Left Eye Blink 
-    # Increment Control Modes = Mouth Open
-    # 
+    # Left Click = Yawn 
+    # Right Click = Looking up
+    # Increment Control Modes = Right Wink
+    # Left Eye Wink and Smile are left unassigned
     # You can dictate text in Sound mode (Control mode = 3)
 
 
     #####################################################################  
     # Initializing the Speech Recognition Thread
     #####################################################################  
+
+    # You can add more controls as you deem fit.
+    numbers = ['zero', 'one', 'two', 'three', 'four', \
+                'five', 'six', 'seven', 'eight', 'nine']
 
     controls = ['left', 'right', 'up', 'down']
 
@@ -351,8 +399,6 @@ def main(args):
     control_syn['right'].extend(['right', 'write', 'great', 'fight', 'might', 'ride'])
     control_syn['up'].extend(['up', 'hop', 'hope', 'out'])
     control_syn['down'].extend(['down', 'doubt', 'though'])
-
-    # controls = {}
 
     device_list = load_device()
 
@@ -384,10 +430,10 @@ def main(args):
 
     #####################################################################    
 
-    # Fixing 40x40 box as yaw and pitch boundaries to
+    # Fixing 60x60 box as yaw and pitch boundaries to
     # correspond to head turning left and right (yaw)
     # and also moving up and down (pitch)
-    headYawPitchBounds = [-10, 10]
+    headYawPitchBounds = [-30, 30]
 
     lastGaze = [0, 0]
     lastPose = [0, 0]
@@ -395,6 +441,8 @@ def main(args):
     # Set the stickiness value
     stickinessHead = 5
     stickinessGaze = 10
+
+    eventText = "No Event"
 
     # init the logger
     logger = logging.getLogger()
@@ -440,6 +488,7 @@ def main(args):
     isSmiling = False
     isMouthOpen = False
     moveEnabled = False
+    islookingUp = False
 
     lastPoses = collections.deque(maxlen=20)
     lastGazes = collections.deque(maxlen=20)
@@ -451,7 +500,7 @@ def main(args):
 
             ################################################################
             # if any sound is deciphered from the spunned off thread then 
-            # check the last 3 words of the utterance for matching control world
+            # check the last 3 words of the utterance for matching control word
             if (stt.qsize() > 0 and controlMode == 3):
                 
                 utterance = stt.get()
@@ -465,9 +514,12 @@ def main(args):
 
                         direction = controls.index(control)
                         mc.moveRelative(direction)
-                        
-                        # isSoundControl = True
+
                     else:
+
+                        if lastWord in numbers:
+                            lastWord = str(numbers.index(lastWord))
+
                         mc.write(lastWord)
 
                     prevUtterance = utterance
@@ -492,11 +544,10 @@ def main(args):
                 logger.error("Unable to detect the face.")
                 continue
 
-            # print(len(crop_face))
             # Draw the face box
             xmin, ymin, xmax, ymax = box
             if visualizeFace:
-                cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 0, 255), 3)
+                cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (255, 0, 255), 3)
 
             orientation = head_model.predict(crop_face)
 
@@ -512,8 +563,7 @@ def main(args):
                 logger.error("Unable to detect eyes.")
                 continue
 
-            # print(p0)
-            # print(p1)
+
             pad = 10
             # Compute Right Eye: Close Snap
             right_eye_ball = frame[ymin + p1[1] - pad: ymin + p0[1] + pad,
@@ -524,58 +574,49 @@ def main(args):
                                     xmin + p2[0] - pad: xmin + p3[0] + pad]
 
 
-            pixelCount_leye_bk = pixelCount_leye #can delete this line
-            pixelCount_reye, Rtrigger = checkEvent(right_eye_ball, pixelCount_reye, frame_count) 
-            pixelCount_leye, Ltrigger = checkEvent(left_eye_ball, pixelCount_leye, frame_count) 
+            # pixelCount_leye_bk = pixelCount_leye #can delete this line
+            pixelCount_reye, Rtrigger, probR = findClosurebyStats('Right', right_eye_ball, pixelCount_reye, frame_count) 
+            pixelCount_leye, Ltrigger, probL = findClosurebyStats('Left', left_eye_ball, pixelCount_leye, frame_count) 
 
-            # if Ltrigger and len(pixelCount_reye) > 0:
-            #     print("ERROR L...")
-            # if Rtrigger and len(pixelCount_leye) > 0:
-            #     print("ERROR R...")
 
-            plt.plot(pixelCount_reye, 'r-', label='Right Eye')
-            plt.plot(pixelCount_leye, 'g-', label='Left Eye')
+            print("probL: " + str(probL))
+            if probL < -30 and islookingUp is False:
+                print('Click Right')
+                controlMode = hikeControlMode(controlMode) ## to change
+                # mc.clickRight()
+                islookingUp = True
+                eventText = 'Increment Control Mode'
+            elif probL > 0:
+                islookingUp = False
+                if (eventText == 'Increment Control Mode'):
+                    eventText = 'No Event'
 
-            if (frame_count == 1 or Ltrigger or Rtrigger):
-                print('Legend Display')
-                plt.legend()
-            plt.pause(0.05)
 
-            # if Ltrigger and Rtrigger:
-            #     print('BOTH EYES ARE CLOSED...')
-                
+            # If both eyes are detected as pressed (as one eye
+            # can shrink when the other eye is winked) then check 
+            # which eye has higher probability of closure.
+            # Note: To close both eyes is not a gesture.
+            if Ltrigger and Rtrigger:
+                # print("probR = " + str(probR) + "probL = " + str(probL))
+                if probR > probL:
+                    Ltrigger = False
+                else:
+                    Rtrigger = False
+
+            # If you want to enable left and right wink actions, 
+            # then call corresponding functions here.
             if Ltrigger:
                 print('left eye pressed')
-                writeList(pixelCount_leye_bk)
-                mc.scroll(20) # you can pass the head pose up/down as param
+                # controlMode = dipControlMode(controlMode)
+                # writeList(pixelCount_leye_bk) # Dumping list for debugging purpose
+                # mc.scroll(20) # you can pass the head pose up/down as param
                 # mc.drag()
-            elif Rtrigger:
+            
+            if Rtrigger:
                 print('right eye pressed')
-                
-                mc.clickRight()
+                # controlMode = hikeControlMode(controlMode)
+                # mc.clickRight()
             
-            # print('eye ball shape = ')
-            # print(right_eye_ball.shape)
-
-            
-            # calculate frequency of pixels in range 0-255 
-            # histg = cv2.calcHist([right_eye_ball],[0],None,[256],[0,256])
-            # show the plotting graph of an image 
-            # plt.plot(histg) 
-            # plt.show()
-
-            # gray = cv2.cvtColor(right_eye_ball, cv2.COLOR_BGR2GRAY) 
-            # edged = cv2.Canny(gray, 30, 200) 
-            # contours, _ = cv2.findContours(edged,  
-            #        cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) 
-  
-            # cv2.drawContours(right_eye_ball, contours, -1, (0, 255, 0), 3)
-            # imshow('iframe', histg)
-            # cv2.imwrite("../eyeImages/eye"+str(frame_count)+".jpg", right_eye_ball)
-            # cv2.imwrite("../eyeImages/eye"+str(frame_count)+"_l.jpg", left_eye_ball)  
-
-            # print(box_left)
-
 
             gaze, (x, y) = gaze_model.predict(left_eye, right_eye, orientation)
 
@@ -645,7 +686,7 @@ def main(args):
             ## Euler angles to cartesian coordinates#
             # https://stackoverflow.com/questions/1568568/how-to-convert-euler-angles-to-directional-vector
 
-            # Total rotation matrix is:
+            # Total rotation matrix is: (See correct matrix in blog)
 
             # | cos(yaw)cos(pitch) -cos(yaw)sin(pitch)sin(roll)-sin(yaw)cos(roll) -cos(yaw)sin(pitch)cos(roll)+sin(yaw)sin(roll)|
             # | sin(yaw)cos(pitch) -sin(yaw)sin(pitch)sin(roll)+cos(yaw)cos(roll) -sin(yaw)sin(pitch)cos(roll)-cos(yaw)sin(roll)|
@@ -661,35 +702,33 @@ def main(args):
                 # Taking 2nd and 3rd row for 2D Projection
                 ##############################LEFT EYE ###################################
                 # cv2.arrowedLine(frame, leftEye_Center,
-                #          (int((xCenter_left + arrowLength * (cosR * cosY - sinY * sinP * sinR))),
-                #           int((yCenter_left + arrowLength * cosP * sinR))), (255, 0, 0), 2)
+                #          (int((xCenter_left + arrowLength * (cosR * cosY + sinY * sinP * sinR))),
+                #           int((yCenter_left + arrowLength * cosP * sinR))), (255, 0, 0), 4)
                 
                 # # center to top
                 # cv2.arrowedLine(frame, leftEye_Center,
-                #          (int(((xCenter_left - arrowLength * (sinY * sinP * cosR + cosY * sinR)))),
-                #           int((yCenter_left + arrowLength * cosP * sinR))), (0, 0, 255), 2)
+                #          (int(((xCenter_left + arrowLength * (sinY * sinP * cosR - cosY * sinR)))),
+                #           int((yCenter_left + arrowLength * cosP * cosR))), (0, 0, 255), 4)
 
                 # center to forward
-
-
-                cv2.arrowedLine(frame, leftEye_Center, \
-                         (int(((xCenter_left + arrowLength * sinY * cosP))), \
-                          int((yCenter_left + arrowLength * sinP))), (0, 255, 0), 5)
+                # cv2.arrowedLine(frame, leftEye_Center, \
+                #          (int(((xCenter_left + arrowLength * sinY * cosP))), \
+                #           int((yCenter_left - arrowLength * sinP))), (0, 255, 0), 4)
 
                 ##############################RIGHT EYE ###################################
                 # cv2.arrowedLine(frame, rightEye_Center,
-                #          (int((xCenter_right + arrowLength * (cosR * cosY - sinY * sinP * sinR))),
-                #           int((yCenter_right + arrowLength * cosP * sinR))), (255, 0, 0), 2)
+                #          (int((xCenter_right + arrowLength * (cosR * cosY + sinY * sinP * sinR))),
+                #           int((yCenter_right + arrowLength * cosP * sinR))), (255, 0, 0), 4)
                 
                 # # center to top
                 # cv2.arrowedLine(frame, rightEye_Center,
-                #          (int(((xCenter_right - arrowLength * (sinY * sinP * cosR + cosY * sinR)))),
-                #           int((yCenter_right + arrowLength * cosP * sinR))), (0, 0, 255), 2)
+                #          (int(((xCenter_right + arrowLength * (sinY * sinP * cosR - cosY * sinR)))),
+                #           int((yCenter_right + arrowLength * cosP * cosR))), (0, 0, 255), 4)
 
                 # center to forward
-                cv2.arrowedLine(frame, rightEye_Center,
-                         (int(((xCenter_right + arrowLength * sinY * cosP))),
-                          int((yCenter_right + arrowLength * sinP))), (0, 255, 0), 5)
+                # cv2.arrowedLine(frame, rightEye_Center,
+                #          (int(((xCenter_right + arrowLength * sinY * cosP))),
+                #           int((yCenter_right - arrowLength * sinP))), (0, 255, 0), 4)
 
 
             # gaze is required for calibration
@@ -706,8 +745,6 @@ def main(args):
                                  int(rightEye_Center[1] + gazeArrowY)), (0, 255, 0), 4)
 
 
-            # print("Distance between mouth = " + str(p11[1] - p10[1]))
-
             ###############################
             # Compute Mouth Aspect Ratio  #
             ###############################
@@ -720,40 +757,41 @@ def main(args):
                 mAspRatio = 0
             # print('MAR RATIO = ' + str(mAspRatio))
 
-            # mouthHeights.append(mouthHeight)
-            # mouthMid = (np.max(mouthHeights) + np.min(mouthHeights)) / 2
-
-            # if mouth is opened then trigger an event/ increment control mode.
-            # if (len(mouthHeights) > 2 and 
-            #     mouthHeight - mouthMid > 4):
-
             # To validate face is properly facing the camera.
             # To avoid erroneous control mode switches coz of face turns.
-            if (isFaceInBounds(headYawPitchBounds, yaw, pitch) and mAspRatio > 0):
+            if (isFaceInBounds(yaw, pitch) and mAspRatio > 0):
+
+                # These threshold constants need to either modified or made dynamic.
+                # 
                 # when mouth is open
                 if mAspRatio > 0.4 and isMouthOpen is False:
 
-                    print('increment control')
                     # mouthHeights.clear()
                     # isSoundControl = False
-                    # Control will switch from gaze to head 
-                    # to sound and then switch back to no control
-                    if controlMode < 3:
-                        controlMode += 1
-                    else:
-                        controlMode = 0
+                    print('clicking left')
+                    mc.clickLeft()
                     isMouthOpen = True
+                    eventText = 'Click Left'
 
+                elif mAspRatio < 0.35:
+                    isMouthOpen = False
+                    if (eventText == 'Click Left'):
+                        eventText = 'No Event'
+
+                # when mouth is wide, i.e. smiling    
+                if mAspRatio < 0.26 and isSmiling == False:
+
+                    print('You are smiling...')
+                    eventText = 'Smiling'
+                    isSmiling = True
+                    
                 elif mAspRatio > 0.3:
                     # Reset the click flag once smile is over.
                     isSmiling =  False
-                elif mAspRatio < 0.3:
-                    isMouthOpen = False
-                # when mouth is wide, i.e. smiling    
-                elif mAspRatio < 0.2 and isSmiling == False:
-                    print('clicking  left')
-                    isSmiling = True
-                    mc.clickLeft()
+                    if (eventText == 'Smiling'):
+                        eventText = 'No Event'
+
+            # controlMode = 3 # To debug a specific control mode.
 
 
             try:
@@ -763,11 +801,6 @@ def main(args):
 
                         isCalibrated = mc.captureCorners(gazeArrowX, gazeArrowY)
 
-                        # print("xmin = " + str(mc.x_min))
-                        # print("xmax = " + str(mc.x_max))
-                        # print("ymin = " + str(mc.y_min))
-                        # print("ymax = " + str(mc.y_max))
-                        #ENABLE BELOW
                     else:
                         # Face should be forward facing inorder to take comamnds.
                         # if (isFaceInBounds(headYawPitchBounds, yaw, pitch)):
@@ -809,6 +842,19 @@ def main(args):
             frame = cv2.putText(frame, 'Control Mode: ' + modes[controlMode], 
                         (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 
                             (0, 0, 255), 1, cv2.LINE_AA)
+
+            frame = cv2.putText(frame, 'Event: ' + eventText, 
+                        (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 
+                            (0, 255, 0), 1, cv2.LINE_AA)
+
+            frame = cv2.putText(frame, 'MAR: ' + str(round(mAspRatio, 2)), 
+                        (20, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 
+                            (0, 255, 0), 1, cv2.LINE_AA)
+
+            frame = cv2.putText(frame, 'Mouse Loc: ' + str(mc.getLocation()), 
+                        (20, 110), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 
+                            (0, 255, 0), 1, cv2.LINE_AA)
+            
 
             imshow('frame', frame, width=800)
             # frameEnd = time.time()

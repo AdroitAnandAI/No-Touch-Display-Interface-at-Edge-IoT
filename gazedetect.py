@@ -31,8 +31,6 @@ class GazeDetect:
         self.core = IECore()
         self.network = self.plugin.load(network=self.net, num_requests=2)
 
-        # self.network = self.core.read_network(model=str(model_name),
-        #                                       weights=str(os.path.splitext(model_name)[0] + ".bin"))
         self.input = next(iter(self.network.inputs))
         self.output = next(iter(self.network.outputs))
 
@@ -57,8 +55,6 @@ class GazeDetect:
         processed_left_eye = self.preprocess_input(left_eye)
         processed_right_eye = self.preprocess_input(right_eye)
 
-        # processed_frame = self.preprocess_input(image)
-        # inference_start_time = time.time()
         self.exec_network.start_async(request_id=self.request_id,
                                       inputs={'left_eye_image': processed_left_eye,
                                               'right_eye_image': processed_right_eye,
@@ -70,7 +66,6 @@ class GazeDetect:
             # self.exec_network.requests[0].wait()
             cords = self.preprocess_output(result[0], orientation)
 
-            # print(cords)
             return result[0], cords
             
 
@@ -101,10 +96,6 @@ class GazeDetect:
         '''
         roll = head_position[2]
         gaze_vector = output / cv2.norm(output)
-        # print('roll = ')
-        # print(roll)
-        # print('gaze vector = ')
-        # print(gaze_vector)
 
         cosValue = math.cos(roll * math.pi / 180.0)
         sinValue = math.sin(roll * math.pi / 180.0)

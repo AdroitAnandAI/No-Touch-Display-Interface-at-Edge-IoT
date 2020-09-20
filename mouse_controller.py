@@ -52,11 +52,6 @@ class MouseController:
         x = max(min(x, self.x_max), self.x_min)
         y = max(min(y, self.y_max), self.y_min)
 
-        # msg = 'x = ' + str(x) + " y = " + str(y) + \
-        #                    " precision = " + str(self.precision)
-        # print(msg)
-        # pyautogui.alert(msg)
-
         # To compute the x, y coordinates in the screen.
         x_cord = self.w * (1 - (x - self.x_min) / (self.x_max - self.x_min))
         y_cord = self.h * (y - self.y_min) / (self.y_max - self.y_min)
@@ -66,7 +61,7 @@ class MouseController:
 
     def moveWithHead(self, x, y, headYawPitchBounds):
 
-        # Fixing 40x40 box as yaw and pitch boundaries to
+        # Fixing 60x60 box as yaw and pitch boundaries to
         # correspond to head turning left and right (yaw)
         # and also moving up and down (pitch)
         x_min = headYawPitchBounds[0]
@@ -78,30 +73,24 @@ class MouseController:
         x = max(min(x, x_max), x_min)
         y = max(min(y, y_max), y_min)
 
-        # msg = 'x = ' + str(x) + " y = " + str(y) + \
-        #                    " precision = " + str(self.precision)
-        # print(msg)
-        # pyautogui.alert(msg)
-
         # To compute the x, y coordinates in the screen.
         x_cord = self.w * (1 - (x - x_min) / (x_max - x_min))
         y_cord = self.h * (y - y_min) / (y_max - y_min)
 
-        # print('x_cord: ' + str(x_cord))
-        # print('y_cord: ' + str(y_cord))
         pyautogui.moveTo(x_cord, y_cord, duration=0.2)
         # pyautogui.moveRel(-x*self.precision, y*self.precision, duration=self.speed)
 
     def clickLeft(self):
-        # pyautogui.click()
+        pyautogui.click()
         return
 
     def clickRight(self):
-        # pyautogui.click(button='right')
+        pyautogui.click(button='right')
         return
 
     def drag(self):
-        pyautogui.drag(0, 10, 1, button='left') 
+        # pyautogui.drag(0, 10, 1, button='left') 
+        return
 
     def scroll(self, value):
         # pyautogui.scroll(value) 
@@ -109,6 +98,12 @@ class MouseController:
 
     def write(self, txt):
         pyautogui.write(txt) 
+        return
+
+    def getLocation(self):
+        loc = pyautogui.position()
+
+        return (loc.x, loc.y)
 
     def captureCorners(self, x, y):
 
