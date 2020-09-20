@@ -115,10 +115,6 @@ However, the public use of this project is not limited to the spread of Corona v
 
 
 
-## For software projects, you can include working code with helpful comments
-code here
-
-
 
 # Project Documentation
 
