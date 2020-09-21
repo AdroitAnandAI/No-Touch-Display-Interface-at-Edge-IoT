@@ -8,7 +8,7 @@ You can **watch the Video Description and Project Demo here:**
 https://www.youtube.com/watch?v=Wt8VuhWN5Oc
 
 **Detailed Project Blog here:**
-https://medium.com/@AnandAI/touch-less-display-interfaces-on-edge-be8dc277c5b8
+https://www.hackster.io/ananduthaman/touch-less-display-interfaces-on-edge-ac9f43
 
 ## Problem Definition
 
