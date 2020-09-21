@@ -3,7 +3,12 @@
 ## _Enabling HCI on Edge: Multi-threaded Gesture & Sound Control of kiosks with Intel OpenVINO AI models. Eye Wink & Mouth Aspect with numerical models_
 
 
-## Project Overview
+## Project Overview and Demo
+You can watch the video description and Project Demo here:
+https://www.youtube.com/watch?v=Wt8VuhWN5Oc
+
+Detailed Blog on this project can be found here:
+https://medium.com/@AnandAI/touch-less-display-interfaces-on-edge-be8dc277c5b8
 
 ## Problem Definition
 
@@ -15,14 +20,10 @@ Ain't it nice to do it all  on your device itself? Imagine a bed-side assistant 
 
 **In this project, we will try to build a Human-Computer Interaction (HCI) module which intelligently orchestrates 5 concurrently-run AI models, one feeding onto another. While the models for face detection, head pose estimation, facial landmarks computation and angle of gaze estimation identify gesture control inputs, another thread is deployed to run offline speech recognition, which communicates with the parent process to give parallel control commands based on user utterance, to assist and augment gesture control.**
 
+
 <p align="center">
-  <img src="Images/eyeWink_Graph_GIF_Small_Size.gif">
+  <img src="Images/eyeWink_Graph_GIF_Small_Size.gif" title="Inverse Sigmoid Curve Fitting to detect Eye Winks">
 </p>  
-
-
-## Project Demo
-
-<video>
 
 
 ## Architecture Diagram
