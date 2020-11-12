@@ -2,6 +2,7 @@
 # Touch-less Display Interfaces on Edge
 ## _Enabling HCI on Edge: Multi-threaded Gesture & Sound Control of kiosks with Intel OpenVINO AI models. Eye Wink & Mouth Aspect with numerical models_
 
+_Personal Note: Won Grand Prize at “Deep Learning Superhero Challenge” with Intel organized by Hackster.io for this project. It gives solace to finally hit the bull’s-eye, after a chain of near misses, despite the bounties — US$ 1000 & Intel Movidius NCS 2 sticks. Sure, there is light at the end of the tunnel :)_
 
 ## Project Overview and Demo
 You can **watch the Video Description and Project Demo here:**
